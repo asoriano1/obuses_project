@@ -1,0 +1,8 @@
+<!-- kuka_a1_a6.launch -->
+<launch>
+  <node pkg="moving_only_a6" type="moving_only_a6.py" name="moving_only_a6_node" output="screen">
+    <param name="a6_min" value="40.0"/>
+    <param name="a6_max" value="60.0"/>
+    <param name="duration" value="60.0"/>
+  </node>
+</launch>
