@@ -28,8 +28,8 @@ class KukaA1A6Controller(object):
         rospy.Subscriber("/kuka_moving", Bool, self.moving_callback)
 
         rospy.loginfo("Esperando a que el servicio '/setKukaA1A6' esté disponible...")
-        rospy.wait_for_service("/setKukaA1A6")
-        self.set_kuka_a1_a6_client = rospy.ServiceProxy("/setKukaA1A6", set_A1_A6)
+        rospy.wait_for_service("/kuka_robot/setKukaA1A6")
+        self.set_kuka_a1_a6_client = rospy.ServiceProxy("/kuka_robot/setKukaA1A6", set_A1_A6)
         rospy.loginfo("Servicio '/setKukaA1A6' encontrado.")
 
     def moving_callback(self, msg):
@@ -107,7 +107,7 @@ def main():
             break
 
         i += 1
-        rospy.sleep(0.5)  # pausa pequeña opcional
+        rospy.sleep(10)  # pausa pequeña opcional
 
     rospy.loginfo("Secuencia completada. Saliendo del nodo.")
 

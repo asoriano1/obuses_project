@@ -19,7 +19,7 @@ repositories:
     type: git
     url: https://github.com/asoriano1/robotnik_trajectory_pad.git
     version: master-2025
-  rqt_kuka:
-    type: git
-    url: https://github.com/asoriano1/rqt_kuka
-    version: master-2025
+#  rqt_kuka:
+#    type: git
+#    url: https://github.com/asoriano1/rqt_kuka
+#    version: master-2025
