@@ -7,11 +7,11 @@ import os
 from config import UI_PATH
 from resources import BACKGROUND_IMAGE
 
-class RqtKukaWidget(QWidget):
+class KukaWidget(QWidget):
     def __init__(self, controller, state_manager, parent=None):
-        super(RqtKukaWidget, self).__init__(parent)
+        super(KukaWidget, self).__init__(parent)
         loadUi(UI_PATH, self)
-        self.setObjectName('RqtKukaUi')
+        self.setObjectName('KukaUi')
 
         self.controller = controller
         self.state_manager = state_manager

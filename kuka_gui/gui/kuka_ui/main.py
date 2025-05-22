@@ -6,11 +6,13 @@ import time
 import xmlrpclib
 import rospy
 from python_qt_binding.QtWidgets import QApplication
-from rqt_kuka_widget import RqtKukaWidget
+from kuka_widget import KukaWidget
 from kuka_controller import KukaController
 from state_manager import StateManager
+from kuka_gui_backend import KukaGuiBackend
 
 def wait_for_roscore_loop():
+    
     ros_master_uri = os.environ.get('ROS_MASTER_URI', 'http://localhost:11311')
     master = xmlrpclib.ServerProxy(ros_master_uri)
 
@@ -30,7 +32,7 @@ if __name__ == "__main__":
     
     if not rospy.core.is_initialized():
         wait_for_roscore_loop()
-        rospy.init_node('rqt_kuka_gui', anonymous=True)
+        rospy.init_node('kuka_gui', anonymous=True)
 
     
     app = QApplication(sys.argv)
@@ -40,7 +42,9 @@ if __name__ == "__main__":
     print("StateManager initialization...")
     state_manager = StateManager()
     print("Widget initialization...")
-    widget = RqtKukaWidget(controller, state_manager)
+    widget = KukaWidget(controller, state_manager)
+    print("Backend initialization...")
+    backend = KukaGuiBackend(widget)
     print("GUI initialization...")
     widget.show()
     print("GUI launched!")
