@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+import logging
+# Configuración básica de logging
+logging.basicConfig(
+    level=logging.DEBUG,  # Cambia a INFO o WARNING en producción si quieres menos "ruido"
+    format='%(asctime)s %(levelname)s [%(name)s]: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 import sys
 import os
@@ -29,7 +36,7 @@ if __name__ == "__main__":
     
     if not rospy.core.is_initialized():
         wait_for_roscore_loop()
-        rospy.init_node('rqt_kuka_gui', anonymous=True)
+        rospy.init_node('kuka_gui', anonymous=True)
 
     
     app = QApplication(sys.argv)

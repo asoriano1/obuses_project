@@ -1,5 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import logging
+logger = logging.getLogger('robotnik_kuka_gui')
+logger.setLevel(logging.DEBUG)  # O INFO, según prefieras
+
+if not logger.handlers:
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s %(levelname)s [%(name)s]: %(message)s')
+    stream_handler.setFormatter(formatter)
+    logger.addHandler(stream_handler)
+
 import os
 import inspect
 import logging
@@ -32,19 +43,6 @@ from widgets_management import WidgetsManagement
 from calibres_config import *
 
 
-# Configuración básica de logging
-logging.basicConfig(
-    level=logging.DEBUG,  # Cambia a INFO o WARNING en producción si quieres menos "ruido"
-    format='%(asctime)s %(levelname)s [%(name)s]: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-logger = logging.getLogger('robotnik_kuka_gui_logger')
-
-logger.debug("Esto es debug")
-logger.info("Esto es info")
-logger.warning("Esto es warning")
-logger.error("Esto es error")
-logger.critical("Esto es critical")
 
 class KukaGUI(QWidget, WidgetsManagement):
         
@@ -53,46 +51,51 @@ class KukaGUI(QWidget, WidgetsManagement):
     do_callback_current = QtCore.pyqtSignal(Float32)
     do_callback_tool_weight = QtCore.pyqtSignal(Float64)
     do_callback_moving = QtCore.pyqtSignal(Bool)
+    
+    logger.debug("Esto es debug")
+    logger.info("Esto es info")
+    logger.warning("Esto es warning")
+    logger.error("Esto es error")
+    logger.critical("Esto es critical")
 
     # Constructor o inicializador.
     def __init__(self, parent=None):
-        
         super(KukaGUI, self).__init__(parent)
-        
-        # Give QObjects reasonable names
         self.setObjectName('KukaGUI')
-
         loadUi(UI_PATH, self)
-        # Give QObjects reasonable names
-        self.setObjectName('RqtKukaUi')
-        
-        logger.info("Checking background processes")
-        #Joysticks management with multiplexor        
-        #command_string = "screen -S mux -d -m rosrun topic_tools mux /kuka_pad/joy /kuka_pad/ps4_joy /kuka_pad/itowa_joy mux:=mux_joy __name:=joy_mux_node &"
-        command_string = "rosrun topic_tools mux /kuka_pad/joy /kuka_pad/ps4_joy /kuka_pad/itowa_joy mux:=mux_joy __name:=joy_mux_node &"
-        os.system(command_string)
-        #PS4 by default
-        command_string = "rosrun topic_tools mux_select mux_joy /kuka_pad/ps4_joy"
-        os.system(command_string)
-        
-        ###launch MAIN nodes: Joysticks and main
-        command_string = "killall screen; sleep 1; screen -S bringup -d -m roslaunch kuka_robot_bringup kuka_robot_bringup_standalone.launch"
-        #command_string = "rosnode kill /kuka_pad/ps4_joystick; sleep 1; rosnode kill /kuka_pad/itowa_safe_joystick; sleep 1;rosnode kill /kuka_pad/robotnik_trajectory_pad_node; sleep 1; rosnode kill /kuka_robot/kuka_cartesian_hardware_interface; sleep 1; roslaunch kuka_robot_bringup kuka_robot_bringup_standalone.launch &"        
-        ###command_string = "rosnode kill /kuka_pad/ps4_joystick; sleep 1; rosnode kill /kuka_pad/itowa_safe_joystick; sleep 1;rosnode kill /kuka_pad/robotnik_trajectory_pad_node; sleep 1; rosnode kill /kuka_robot/kuka_cartesian_hardware_interface; sleep 1;"        
-        os.system(command_string)
-                    
-        # add signals/slots
-        #select obus calibre
+        logger.info("Inicializando GUI principal Robotnik Obuses")
+        print("Inicializando GUI principal Robotnik Obuses")
+
+        # --- Lanzar y loguear procesos externos ---
+        def _run_and_log(cmd, desc):
+            logger.info("Ejecutando: %s", desc)
+            os.system(cmd)
+
+        _run_and_log(
+            "rosrun topic_tools mux /kuka_pad/joy /kuka_pad/ps4_joy /kuka_pad/itowa_joy mux:=mux_joy __name:=joy_mux_node &",
+            "Multiplexor de Joysticks"
+        )
+        _run_and_log(
+            "rosrun topic_tools mux_select mux_joy /kuka_pad/ps4_joy",
+            "Selección por defecto PS4"
+        )
+        _run_and_log(
+            "killall screen; sleep 1; screen -S bringup -d -m roslaunch kuka_robot_bringup kuka_robot_bringup_standalone.launch",
+            "Lanzar bringup principal"
+        )
+
+        # --- Conexión de señales y slots ---
         self.calibre_comboBox.currentIndexChanged.connect(self.calibre_selected)
         self.joy_comboBox.currentIndexChanged.connect(self.joy_selected)
         self.mode_label.setText("NOT CONNECTED")
-        #Buttons
+
+        # Conexión de botones principales
         self.Finger_Adjust_Button.pressed.connect(self.press_finger_adjust_button)
         self.Tare_Button.pressed.connect(self.press_tare_button)
         self.Tare_Reset_Button.pressed.connect(self.press_tare_reset_button)
         self.Reset_Ext_Button.pressed.connect(self.press_reset_external_pc_button)
         self.Reset_Robot_Button.pressed.connect(self.press_reset_robot_button)
-        self.MoveToTable_Button.pressed.connect(self.press_homming_button)#self.press_move_to_rotation_table_button) 
+        self.MoveToTable_Button.pressed.connect(self.press_homming_button)
         self.PickTest_Button.pressed.connect(self.press_picktest_button)
         self.Gripper_Homing_Button.pressed.connect(self.press_tool_homming)
         self.Led_On_Button.pressed.connect(self.press_led_on_button)
@@ -104,94 +107,72 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.undoPositions_Button_pick.pressed.connect(self.press_undo_positions_button_pick)
         self.undoPositions_Button_place.pressed.connect(self.press_undo_positions_button_place)
         self.press_Button.pressed.connect(self.aut_press_tool)
-        
-        #Checkboxes of robot settings
+
+        # Conexión de checkboxes de configuración
         self.deadMan_check.clicked.connect(self.deadMan_state_changed)
         self.toolAngle_check.clicked.connect(self.toolAngle_state_changed)
         self.toolOrientation_check.clicked.connect(self.toolOrientation_state_changed)
-        
+
+        # --- Apariencia inicial ---
         self.Led_On_Button.setStyleSheet("color: rgb(80, 170, 80)")
         self.Led_Off_Button.setStyleSheet("color: rgb(170, 80, 80)")
         self.Light_On_Button.setStyleSheet("color: rgb(80, 170, 80)")
         self.Light_Off_Button.setStyleSheet("color: rgb(170, 80, 80)")
-        
-        pixmap = QtGui.QPixmap(IMG_PATH+"/fondo_huevera_0.png")
+
+        pixmap = QtGui.QPixmap(IMG_PATH + "/fondo_huevera_0.png")
         self.background_plate.setPixmap(pixmap)
         self.background_plate_pick.setPixmap(pixmap)
-        #self.Home_Button.setEnabled(False)
         self.Finger_Adjust_Button.setEnabled(False)
         self.MoveToTable_Button.setEnabled(False)
         self.weightProgressBar_2.setMinimum(0)
         self.weightProgressBar_2.setMaximum(15)
-        
-        # si es -1 fuerza a que se seleccione un pick para habilitar un place lo cual quizá no siempre sea lo mejor
         self.origin_pick_quad = 0
-        
+
         self.state_dict = self.init_state_dict()
         self.obus_manager = ObusManager(self)
-        
-        
-        #subscriber to robot state
+
+        # --- Suscripciones ROS ---
+        logger.info("Creando suscripciones ROS")
         self.sub_robot_moving = rospy.Subscriber(topic_kuka_moving, Bool, self.callback_moving)
-        #self.do_callback_moving.connect(self.callback_moving)
-
-        #subscriber to robot pose
         self.sub_robot_pose = rospy.Subscriber(topic_cart_pose_kuka, Cartesian_Euler_pose, self.callback_robot_pose)     
-
-        #subscriber to tool weight detected
         self.sub_tool_weight = rospy.Subscriber(topic_tool_weight, Float64, self.callback_tool_weight2)
         self.do_callback_tool_weight.connect(self.callback_tool_weight)     
-
-        #subscriber to tool current
         self.sub_tool_current = rospy.Subscriber(topic_current, Float32, self.callback_current2)
         self.do_callback_current.connect(self.callback_current) 
-                
-        #subscriber to horiz force
         self.sub_tool_force = rospy.Subscriber(topic_horiz_force, Float64, self.callback_horiz_force2)
         self.do_callback_horiz_force.connect(self.callback_horiz_force)
-        
-        #subscriber to motor status of the tool
         self.sub_tool_status = rospy.Subscriber(topic_motor_status, RobotnikMotorsStatus, self.callback_motor_status2)
         self.do_callback_motor_status.connect(self.callback_motor_status)
-        
-        #subscriber to tool state
-        self.sub_tool_state = rospy.Subscriber(topic_tool_state, JointState,  self.callback_tool_state)
-        
-        #subscriber to door state
+        self.sub_tool_state = rospy.Subscriber(topic_tool_state, JointState, self.callback_tool_state)
         self.sub_door_status = rospy.Subscriber(topic_door_state, inputs_outputs, self.callback_door_state)
-        
-        #Robot settings initialization
-        #Default: deadman activated
-        try:
-                deadman_service=rospy.ServiceProxy(srv_deadman, SetBool)
-                ret = deadman_service(True)
-        except rospy.ServiceException as e:
-                logger.error("Service call failed: %s", e)
-                #ret=QMessageBox.critical(self, "WARNING!", 'Deadman service not available', QMessageBox.Ok)
-                
-        #Default: angle activated
-        try:
-                angle_mode_service=rospy.ServiceProxy(srv_angle_mode, SetBool)
-                ret = angle_mode_service(True)
-        except rospy.ServiceException as e:
-                logger.error("Service call failed: %s", e)
-                #ret=QMessageBox.critical(self, "WARNING!", 'Angle Mode service not available', QMessageBox.Ok)
-        #Default: tool orientation reference deactivated
-        try:
-                toolOrientation_service=rospy.ServiceProxy(srv_rel_tool, SetBool)
-                ret = toolOrientation_service(False)
-        except rospy.ServiceException as e:
-                logger.error("Service call failed: %s", e)
-                #ret=QMessageBox.critical(self, "WARNING!", 'Tool Orientation service not available', QMessageBox.Ok)
 
-        
+        # --- Inicialización de servicios ROS por defecto ---
+        logger.info("Inicializando servicios ROS por defecto")
+        try:
+            deadman_service = rospy.ServiceProxy(srv_deadman, SetBool)
+            ret = deadman_service(True)
+        except rospy.ServiceException as e:
+            logger.error("Service call failed: %s", e)
+
+        try:
+            angle_mode_service = rospy.ServiceProxy(srv_angle_mode, SetBool)
+            ret = angle_mode_service(True)
+        except rospy.ServiceException as e:
+            logger.error("Service call failed: %s", e)
+
+        try:
+            toolOrientation_service = rospy.ServiceProxy(srv_rel_tool, SetBool)
+            ret = toolOrientation_service(False)
+        except rospy.ServiceException as e:
+            logger.error("Service call failed: %s", e)
+
+        # --- Otras propiedades iniciales ---
         self.setWindowTitle("ROBOTNIK OBUSES GUI")
-        self.resize(620,1100)
+        self.resize(620, 1100)
         self._name = "RqtKuka"
-                
-        #Variable para almacenar el ultimo obus seleccionado
         self.last_obus_selected_pick = -1
         self.last_obus_selected_place = -1
+
 
     
     #inicialización del estado de los obuses para state_dict['tipo', grupo, idx]
