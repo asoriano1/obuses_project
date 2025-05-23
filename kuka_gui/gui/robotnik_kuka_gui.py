@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import inspect
-
+import logging
 import rospy
 import rospkg
 import time
@@ -32,6 +32,20 @@ from widgets_management import WidgetsManagement
 from calibres_config import *
 
 
+# Configuración básica de logging
+logging.basicConfig(
+    level=logging.DEBUG,  # Cambia a INFO o WARNING en producción si quieres menos "ruido"
+    format='%(asctime)s %(levelname)s [%(name)s]: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger('robotnik_kuka_gui_logger')
+
+logger.debug("Esto es debug")
+logger.info("Esto es info")
+logger.warning("Esto es warning")
+logger.error("Esto es error")
+logger.critical("Esto es critical")
+
 class KukaGUI(QWidget, WidgetsManagement):
         
     do_callback_motor_status = QtCore.pyqtSignal(RobotnikMotorsStatus)
@@ -40,6 +54,7 @@ class KukaGUI(QWidget, WidgetsManagement):
     do_callback_tool_weight = QtCore.pyqtSignal(Float64)
     do_callback_moving = QtCore.pyqtSignal(Bool)
 
+    # Constructor o inicializador.
     def __init__(self, parent=None):
         
         super(KukaGUI, self).__init__(parent)
@@ -51,7 +66,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         # Give QObjects reasonable names
         self.setObjectName('RqtKukaUi')
         
-        print("Checking background processes")
+        logger.info("Checking background processes")
         #Joysticks management with multiplexor        
         #command_string = "screen -S mux -d -m rosrun topic_tools mux /kuka_pad/joy /kuka_pad/ps4_joy /kuka_pad/itowa_joy mux:=mux_joy __name:=joy_mux_node &"
         command_string = "rosrun topic_tools mux /kuka_pad/joy /kuka_pad/ps4_joy /kuka_pad/itowa_joy mux:=mux_joy __name:=joy_mux_node &"
@@ -150,23 +165,23 @@ class KukaGUI(QWidget, WidgetsManagement):
         try:
                 deadman_service=rospy.ServiceProxy(srv_deadman, SetBool)
                 ret = deadman_service(True)
-        except rospy.ServiceException, e:
-                print "Service call failed: %s"%e
+        except rospy.ServiceException as e:
+                logger.error("Service call failed: %s", e)
                 #ret=QMessageBox.critical(self, "WARNING!", 'Deadman service not available', QMessageBox.Ok)
                 
         #Default: angle activated
         try:
                 angle_mode_service=rospy.ServiceProxy(srv_angle_mode, SetBool)
                 ret = angle_mode_service(True)
-        except rospy.ServiceException, e:
-                print "Service call failed: %s"%e
+        except rospy.ServiceException as e:
+                logger.error("Service call failed: %s", e)
                 #ret=QMessageBox.critical(self, "WARNING!", 'Angle Mode service not available', QMessageBox.Ok)
         #Default: tool orientation reference deactivated
         try:
                 toolOrientation_service=rospy.ServiceProxy(srv_rel_tool, SetBool)
                 ret = toolOrientation_service(False)
-        except rospy.ServiceException, e:
-                print "Service call failed: %s"%e
+        except rospy.ServiceException as e:
+                logger.error("Service call failed: %s", e)
                 #ret=QMessageBox.critical(self, "WARNING!", 'Tool Orientation service not available', QMessageBox.Ok)
 
         
@@ -180,6 +195,7 @@ class KukaGUI(QWidget, WidgetsManagement):
 
     
     #inicialización del estado de los obuses para state_dict['tipo', grupo, idx]
+# Constructor o inicializador.
     def init_state_dict(self):
         d = {}
         # Place
@@ -194,6 +210,7 @@ class KukaGUI(QWidget, WidgetsManagement):
 
         #filtro para detectar el raton y ponerlo verde si esta el cursor encima o dejarlo blanco si no
     
+# Filtro de eventos de Qt para personalizar el comportamiento de widgets.
     def eventFilter(self, object, event):               
         if not KUKA_AUT:
             # huevera 16
@@ -325,6 +342,7 @@ class KukaGUI(QWidget, WidgetsManagement):
 
         return False
 
+# Función: Desactivate buttons.
     def desactivate_buttons(self):
 
         self.PickTest_Button.setEnabled(False)
@@ -345,6 +363,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.obus_manager.deactivate_buttons('Pick', 8, 1, 14)
         self.obus_manager.deactivate_buttons('Pick', 16, 1, 20)
         
+# Función: Activate buttons.
     def activate_buttons(self):        
         self.PickTest_Button.setEnabled(True)
         self.Gripper_Homing_Button.setEnabled(True)
@@ -364,8 +383,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.obus_manager.activate_buttons('Pick', 16, 1, 20)
         
         #no hay ninguno pulsado, activa todos los places
-        if(self.origin_pick_quad==0):
-            print("Activa todos los places")
+        if(self.origin_pick_quad==0):            
             self.obus_manager.activate_buttons('Place', 16, 1, 16)
             self.obus_manager.activate_buttons('Place', 2, 1, 2)
             self.obus_manager.activate_buttons('Place', 4, 1, 4)
@@ -394,16 +412,19 @@ class KukaGUI(QWidget, WidgetsManagement):
         for group, last in [(16,20), (8,14), (4,5), (2,4)]:
             self.obus_manager.remove_event_filters('Pick', group, 1, last)
     
+# Gestión de acción de botón: 'Reset positions place'.
     def press_reset_positions_button_place(self):
         self.obus_manager.reset_positions_place()
         self.desactivate_buttons()
         self.activate_buttons()
     
+# Gestión de acción de botón: 'Reset positions pick'.
     def press_reset_positions_button_pick(self):
         self.obus_manager.reset_positions_pick()        
 
+# Gestión de acción de botón: 'Undo positions pick'.
     def press_undo_positions_button_pick(self):
-        print("Undo pick button pressed")
+        logger.debug("Undo pick button pressed")
         if self.last_obus_selected_pick == -1:
             return
 
@@ -423,6 +444,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.last_obus_selected_pick = -1
         self.origin_pick_quad = 0        
 
+# Gestión de acción de botón: 'Undo positions place'.
     def press_undo_positions_button_place(self):
         if self.last_obus_selected_place == -1:
             return
@@ -442,9 +464,10 @@ class KukaGUI(QWidget, WidgetsManagement):
 
         self.last_obus_selected_place = -1
 
+# Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_moving(self, data):
         global KUKA_AUT, first_time_moving_kuka
-        #print 'CB:moving_received:',data.data
+        #logger.info("CB:moving_received:"),data.data
         if data.data == True :
             if not KUKA_AUT:
                 KUKA_AUT=True
@@ -461,9 +484,11 @@ class KukaGUI(QWidget, WidgetsManagement):
                 self.activate_buttons()
                 first_time_moving_kuka = True
 
+# Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_moving2(self,data):
             self.do_callback_moving.emit(data)
             
+# Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_motor_status(self,data):
 
         global under_voltage_tool, first_time_enabled, weight_empty, weight_read
@@ -474,7 +499,7 @@ class KukaGUI(QWidget, WidgetsManagement):
             under_voltage_tool=True
             pixmap = QtGui.QPixmap(IMG_PATH+"/pinza_roja_peq2.png")
             self.under_voltage_tool.setPixmap(pixmap)
-            #print 'undervoltage'
+            #logger.info("undervoltage")
         else:
             under_voltage_tool=False
             pixmap = QtGui.QPixmap(IMG_PATH+"/pinza_verde_peq2.png")
@@ -482,12 +507,13 @@ class KukaGUI(QWidget, WidgetsManagement):
         if(motor1.status=="OPERATION_ENABLED" and first_time_enabled):
             #if(weight_read-weight_empty<-10):
             first_time_enabled=False
-            #print 'Warninng of weight should be here'				
+            #logger.info("Warninng of weight should be here")				
             ret = QMessageBox.information(self, "WARNING!", 'Tool enabled', QMessageBox.Ok)
         if(motor1.status=="FAULT"):
             first_time_enabled=True
-            #print first_time_enabled
+            #logger.info(first_time_enabled)
             
+# Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_door_state(self, data):
         
         if data.digital_inputs[0]:
@@ -503,15 +529,17 @@ class KukaGUI(QWidget, WidgetsManagement):
             pixmap =QtGui.QPixmap(IMG_PATH+"/emergency_roja_peq.png")
             self.label_6.setPixmap(pixmap)
                         
+# Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_motor_status2(self,data):
             self.do_callback_motor_status.emit(data)
 
+# Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_robot_pose(self, data):
         global pos_x_kuka, pos_y_kuka, pos_z_kuka, pos_a_kuka, pos_b_kuka, pos_c_kuka, rob_connected#, elapsed_time_gauges#, gauges_failure
         if not rob_connected :
              rob_connected = True
              self.mode_label.setText("MANUAL")
-        #print 'CB:robot_pose_received',data
+        #logger.info("CB:robot_pose_received"),data
         pos_x_kuka=data.x
         pos_y_kuka=data.y
         pos_z_kuka=data.z
@@ -519,18 +547,21 @@ class KukaGUI(QWidget, WidgetsManagement):
         pos_b_kuka=data.B
         pos_c_kuka=data.C
         #elapsed_time_gauges=time.time()-start_time_gauges
-        #print 'time between robot callback and gauges' ,elapsed_time_gauges
+        #logger.info("time between robot callback and gauges") ,elapsed_time_gauges
         #if (elapsed_time_gauges>=2):
             #gauges_failure=True
+# Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_horiz_force(self, data):
         global horiz_force_read, horiz_force_empty
-        #print 'force_received:',data.data
+        #logger.info("force_received:"),data.data
         horiz_force_read = data.data
         self.vertforce_lcdNumber.setDigitCount(4)
         self.vertforce_lcdNumber.display(round((data.data-horiz_force_empty)*0.19,1))
+# Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_horiz_force2(self,data):
             self.do_callback_horiz_force.emit(data)
         
+# Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_tool_weight(self, data):
         global weight_empty, weight_reads#, gauges_failure, start_time_gauges
         #start_time_gauges=time.time()
@@ -538,7 +569,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.weight_lcdNumber.setDigitCount(4)
         palette = self.weight_lcdNumber.palette()
         progressBar_palette = self.weightProgressBar.palette()   
-        #print 'CB:tool_weight_received',data
+        #logger.info("CB:tool_weight_received"),data
         weight_read=data.data
         weight_no_tool=data.data#-weight_empty
         weight_reads[0]=weight_no_tool
@@ -570,18 +601,22 @@ class KukaGUI(QWidget, WidgetsManagement):
                 self.weightProgressBar_2.setValue(int(round(weight_no_tool)))
                 self.weightProgressBar.setValue(0)
         
+# Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_tool_weight2(self,data):
             self.do_callback_tool_weight.emit(data)
 
+# Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_current(self, data):
-        #print 'CB:current_received',data
+        #logger.info("CB:current_received"),data
         global tool_current
         tool_current = data.data
         self.tool_force_lcdNumber.setDigitCount(4)
         self.tool_force_lcdNumber.display(round(data.data,1))
+# Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_current2(self,data):
             self.do_callback_current.emit(data)
     
+# Gestión de acción de botón: 'Move to rotation table'.
     def press_move_to_rotation_table_button(self):
         ret = QMessageBox.warning(self, "WARNING!", 'Are you sure? \nRobot moves automatically', QMessageBox.Ok, QMessageBox.Cancel)
         if ret == QMessageBox.Ok:
@@ -598,10 +633,11 @@ class KukaGUI(QWidget, WidgetsManagement):
                 while KUKA_AUT: self.sleep_loop(0.3)
                 placed_abs_service = rospy.ServiceProxy(srv_name_move_abs_slow, set_CartesianEuler_pose)                
                 ret = placed_abs_service(table_pose_x, table_pose_y, table_pose_z, table_pose_a, table_pose_b, table_pose_c)
-            except rospy.ServiceException, e:
-                print "Service call failed: %s"%e
+            except rospy.ServiceException as e:
+                logger.error("Service call failed: %s", e)
                 ret=QMessageBox.critical(self, "WARNING!", 'Movement Service not available.', QMessageBox.Ok)    
                     
+# Gestión de acción de botón: 'Tool homming'.
     def press_tool_homming(self):
         ret = QMessageBox.warning(self, "WARNING!", 'Are you sure? \nBe sure there is no obus picked', QMessageBox.Ok, QMessageBox.Cancel)        
         if ret == QMessageBox.Ok:
@@ -622,7 +658,7 @@ class KukaGUI(QWidget, WidgetsManagement):
                 if ret == True:
                     TOOL_HOMED=True
                 else:
-                    print("ERROR: Homing service returns false!")
+                    logger.info("ERROR: Homing service returns false!")
                     #antes se hacía el TOOL_HOMED=True aunque fallase
                 #set current again
                 if finger_type == 0:
@@ -640,9 +676,10 @@ class KukaGUI(QWidget, WidgetsManagement):
                 elif finger_type == 4:
                     limit_cont_current_service(current_limit_cont)
                     limit_peak_current_service(current_limit_4)               
-            except rospy.ServiceException, e:
-                print "Service call failed: %s"%e
+            except rospy.ServiceException as e:
+                logger.error("Service call failed: %s", e)
             
+# Gestión de acción de botón: 'Finger adjust'.
     def press_finger_adjust_button(self):
         if(not TOOL_HOMED):
                 QMessageBox.warning(self, "WARNING!", 'Are you sure? \nHoming of the tool should be done first', QMessageBox.Ok, QMessageBox.Cancel)
@@ -651,38 +688,41 @@ class KukaGUI(QWidget, WidgetsManagement):
             
             gripper_trasl_service = rospy.ServiceProxy(srv_finger_set_pose,set_odometry)
             if finger_type == 0:
-                print 'No gripper selected'
+                logger.debug("No gripper selected")
             elif finger_type == 1:
-                print 'Set gripper to 100mm'
+                logger.debug("Set gripper to 100mm")
                 tras_from_homing=0.2-0.1;               
                 ret=gripper_trasl_service(tras_from_homing,0,0,0)
             elif finger_type == 2:
-                print 'Set gripper to 140mm'
+                logger.debug("Set gripper to 140mm")
                 tras_from_homing=0.2-0.14;
                 ret=gripper_trasl_service(tras_from_homing,0,0,0)
             elif finger_type == 3:
-                print 'Set gripper to 160mm'
+                logger.debug("Set gripper to 160mm")
                 tras_from_homing=0.2-0.16;
                 ret=gripper_trasl_service(tras_from_homing,0,0,0)
             elif finger_type == 4:
-                print 'Set gripper to 270mm'
+                logger.debug("Set gripper to 270mm")
                 tras_from_homing=0.03;
                 ret=gripper_trasl_service(tras_from_homing,0,0,0)
             
+# Gestión de acción de botón: 'Led on'.
     def press_led_on_button(self):
         try:
             led_service = rospy.ServiceProxy(srv_digital_io, set_digital_output)
             ret = led_service(6,False)
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
+        except rospy.ServiceException as e:
+            logger.error("Service call failed: %s", e)
 
+# Gestión de acción de botón: 'Led off'.
     def press_led_off_button(self):
         try:
             led_service = rospy.ServiceProxy(srv_digital_io, set_digital_output)
             ret = led_service(6,True)
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
+        except rospy.ServiceException as e:
+            logger.error("Service call failed: %s", e)
         
+# Función: Deadman state changed.
     def deadMan_state_changed(self):
         ret_q = QMessageBox.warning(self, "WARNING!", 'Changes to the current configuration will be applied', QMessageBox.Ok, QMessageBox.Cancel)
         if(ret_q==QMessageBox.Ok):
@@ -690,17 +730,18 @@ class KukaGUI(QWidget, WidgetsManagement):
                                     try:
                                         deadman_service=rospy.ServiceProxy(srv_deadman, SetBool)
                                         ret = deadman_service(True)
-                                    except rospy.ServiceException, e:
-                                        print "Service call failed: %s"%e
+                                    except rospy.ServiceException as e:
+                                        logger.error("Service call failed: %s", e)
                     elif(self.deadMan_check.isChecked()==False):
                                     try:
                                         deadman_service=rospy.ServiceProxy(srv_deadman, SetBool)
                                         ret = deadman_service(False)
-                                    except rospy.ServiceException, e:
-                                        print "Service call failed: %s"%e
+                                    except rospy.ServiceException as e:
+                                        logger.error("Service call failed: %s", e)
         else : 
                 self.deadMan_check.nextCheckState()
                 
+# Función: Toolangle state changed.
     def toolAngle_state_changed(self):
         ret_q = QMessageBox.warning(self, "WARNING!", 'Changes to the current configuration will be applied', QMessageBox.Ok, QMessageBox.Cancel)
         if(ret_q==QMessageBox.Ok):
@@ -708,17 +749,18 @@ class KukaGUI(QWidget, WidgetsManagement):
                                     try:
                                         angle_mode_service=rospy.ServiceProxy(srv_angle_mode, SetBool)
                                         ret = angle_mode_service(True)
-                                    except rospy.ServiceException, e:
-                                        print "Service call failed: %s"%e
+                                    except rospy.ServiceException as e:
+                                        logger.error("Service call failed: %s", e)
                         elif(self.toolAngle_check.isChecked()==False):
                                     try:
                                         angle_mode_service=rospy.ServiceProxy(srv_angle_mode, SetBool)
                                         ret = angle_mode_service(False)
-                                    except rospy.ServiceException, e:
-                                        print "Service call failed: %s"%e
+                                    except rospy.ServiceException as e:
+                                        logger.error("Service call failed: %s", e)
         else:
                 self.toolAngle_check.nextCheckState()
 
+# Función: Toolorientation state changed.
     def toolOrientation_state_changed(self):
         ret_q = QMessageBox.warning(self, "WARNING!", 'Changes to the current configuration will be applied', QMessageBox.Ok, QMessageBox.Cancel)
         if(ret_q==QMessageBox.Ok):
@@ -726,75 +768,79 @@ class KukaGUI(QWidget, WidgetsManagement):
                             try:
                                 toolOrientation_service=rospy.ServiceProxy(srv_rel_tool, SetBool)
                                 ret = toolOrientation_service(True)
-                            except rospy.ServiceException, e:
-                                print "Service call failed: %s"%e
+                            except rospy.ServiceException as e:
+                                logger.error("Service call failed: %s", e)
                 elif(self.toolOrientation_check.isChecked()==False):
                             try:
                                 toolOrientation_service=rospy.ServiceProxy(srv_rel_tool, SetBool)
                                 ret = toolOrientation_service(False)
-                            except rospy.ServiceException, e:
-                                print "Service call failed: %s"%e
+                            except rospy.ServiceException as e:
+                                logger.error("Service call failed: %s", e)
         else:
                 self.toolOrientation_check.nextCheckState()
 			
+# Gestión de acción de botón: 'Light on'.
     def press_light_on_button(self):
         try:
             led_service = rospy.ServiceProxy(srv_digital_io, set_digital_output)
             ret = led_service(4,False)
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
+        except rospy.ServiceException as e:
+            logger.error("Service call failed: %s", e)
     
+# Gestión de acción de botón: 'Light off'.
     def press_light_off_button(self):
         try:
             led_service = rospy.ServiceProxy(srv_digital_io, set_digital_output)
             ret = led_service(4,True)
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
+        except rospy.ServiceException as e:
+            logger.error("Service call failed: %s", e)
             
+# Gestión de acción de botón: 'Homming'.
     def press_homming_button(self):     
         global KUKA_AUT, pos_z_kuka, pos_a_kuka, CURRENT_STATE
         ret = QMessageBox.warning(self, "WARNING!", 
                                 'Are you sure? \nRobot is going to move autonomously', 
                                 QMessageBox.Ok, QMessageBox.Cancel)
         if ret != QMessageBox.Ok:
-            print("[press_homming_button] Acción cancelada por el usuario.")
+            logger.debug("[press_homming_button] Acción cancelada por el usuario.")
             return
 
         #self.origin_pick_quad = 0 #SEGURO? por qué hacer homing es quitar la restricción de los botones de places?
-        print("[press_homming_button] Iniciando homming...")
+        logger.info("[press_homming_button] Iniciando homming...")
 
         try:
-            print("[press_homming_button] Moviendo en Z de forma relativa (pre-homing).")
+            logger.info("[press_homming_button] Moviendo en Z de forma relativa (pre-homing).")
             homming_rel_service = rospy.ServiceProxy(srv_name_move_rel_slow, set_CartesianEuler_pose)
             ret_rel = homming_rel_service(0, 0, pose_z_safe - pos_z_kuka, 0, 0, 0)
-            print("[press_homming_button] Movimiento relativo Z ejecutado, esperando...")
+            logger.info("[press_homming_button] Movimiento relativo Z ejecutado, esperando...")
             self.sleep_loop(2)
             while KUKA_AUT:
-                print("[press_homming_button] Esperando a que KUKA_AUT sea False...")
+                logger.info("[press_homming_button] Esperando a que KUKA_AUT sea False...")
                 self.sleep_loop(0.3)
 
-            print("[press_homming_button] Llamando a home_A1_A6_service...")
+            logger.info("[press_homming_button] Llamando a home_A1_A6_service...")
             home_A1_A6_service = rospy.ServiceProxy(srv_move_A1_A6, set_A1_A6)
             ret_a1a6 = home_A1_A6_service(0.0, 177)
-            print("[press_homming_button] Movimiento home_A1_A6 ejecutado, esperando...")
+            logger.info("[press_homming_button] Movimiento home_A1_A6 ejecutado, esperando...")
             self.sleep_loop(2)
-            while KUKA_AUT:
-                print("[press_homming_button] Esperando a que KUKA_AUT sea False...")
+            logger.info("[press_homming_button] Esperando a que KUKA_AUT sea False...")
+            while KUKA_AUT:                
                 self.sleep_loop(0.3)
 
-            print("[press_homming_button] Moviendo a posición absoluta en la mesa.")
+            logger.info("[press_homming_button] Moviendo a posición absoluta en la mesa.")
             placed_abs_service = rospy.ServiceProxy(srv_name_move_abs_slow, set_CartesianEuler_pose)
             ret_abs = placed_abs_service(table_pose_x, table_pose_y, table_pose_z, table_pose_a, table_pose_b, table_pose_c)
             if ret_abs == True:
                 CURRENT_STATE = STATE_MOVING_TO_PLACE
-                print("[press_homming_button] Homming completado y estado actualizado.")
+                logger.info("[press_homming_button] Homming completado y estado actualizado.")
             else:
-                print("[press_homming_button] Advertencia: La llamada a placed_abs_service no devolvió True.")
-        except rospy.ServiceException, e:
-            print("[press_homming_button] FALLO EN LA LLAMADA AL SERVICIO: %s" % e)
-        except Exception, e:
-            print("[press_homming_button] ERROR INESPERADO: %s" % e)
+                logger.warning("[press_homming_button] Advertencia: La llamada a placed_abs_service no devolvió True.")
+        except rospy.ServiceException as e:
+            logger.error("[press_homming_button] FALLO EN LA LLAMADA AL SERVICIO: %s" % e)
+        except Exception as e:
+            logger.error("[press_homming_button] ERROR INESPERADO: %s" % e)
 
+# Gestión de acción de botón: 'Picktest'.
     def press_picktest_button(self):
         global KUKA_AUT
         ret = QMessageBox.warning(self, "WARNING!", 'Are you sure? \nRobot moves automatically', QMessageBox.Ok, QMessageBox.Cancel)
@@ -806,38 +852,42 @@ class KukaGUI(QWidget, WidgetsManagement):
                 #while KUKA_AUT: time.sleep(0.1)
                 if ret_rel == True:
                         CURRENT_STATE=STATE_DOING_PICK_TEST
-            except rospy.ServiceException, e:
-                print "Service call failed: %s"%e
+            except rospy.ServiceException as e:
+                logger.error("Service call failed: %s", e)
 
+# Gestión de acción de botón: 'Tare'.
     def press_tare_button(self):
         try:
             tare_service = rospy.ServiceProxy(srv_tare_gauges, SetBool)
             ret = tare_service(True)
-        except rospy.ServiceException, e:
-                print "Service call failed: %s"%e
+        except rospy.ServiceException as e:
+                logger.error("Service call failed: %s", e)
 
+# Gestión de acción de botón: 'Tare reset'.
     def press_tare_reset_button(self):
         try:
             tare_service = rospy.ServiceProxy(srv_tare_gauges, SetBool)
             ret = tare_service(False)
-        except rospy.ServiceException, e:
-                print "Service call failed: %s"%e
+        except rospy.ServiceException as e:
+                logger.error("Service call failed: %s", e)
     #################################################JOY SELECTION
+# Función: Joy selected.
     def joy_selected(self, index):
         if index == 0:
-            print 'PS4 selected'
+            logger.debug("PS4 selected")
             command_string = "rosrun topic_tools mux_select mux_joy /kuka_pad/ps4_joy"
             os.system(command_string)
         elif index == 1:            
-            print 'ITOWA selected'
+            logger.debug("ITOWA selected")
             command_string = "rosrun topic_tools mux_select mux_joy /kuka_pad/itowa_joy"
             os.system(command_string)
     
     #################################################CALIBRE SELECTION
+# Gestión de cambio de calibre (selección de tipo de gripper/obus).
     def calibre_selected(self, index):
         global finger_type, weight_expected_min, weight_expected_max, current_limit_picked
 
-        print('Selected:', index)
+        logger.debug('Selected:: %s', index)
         finger_type = index
         calibre = CALIBRES.get(index, CALIBRES[0])
 
@@ -878,7 +928,7 @@ class KukaGUI(QWidget, WidgetsManagement):
                 limit_cont_current_service(limit_value)
                 limit_peak_current_service(limit_value)
             except (rospy.ServiceException, rospy.ROSException) as e:
-                rospy.logerr("Service call failed: %s" % (e,))
+                logger.error("Service call failed: %s" % (e,))
             current_limit_picked = limit_value
 
         # Ajusta el máximo del progressbar
@@ -891,15 +941,17 @@ class KukaGUI(QWidget, WidgetsManagement):
     #    command_string = "rosparam load ~/kuka_catkin_ws/src/kuka_experimental/kuka_robot_bringup/robot/bin/kr120toolv%d.urdf /robot_description" % gripper_model
     #    os.system(command_string)
         
+# Gestión de acción de botón: 'Reset external pc'.
     def press_reset_external_pc_button(self):
         ret = QMessageBox.warning(self, "WARNING!", 'Are you sure? \nExternal PC is going to reset.\n Wait 10 sec and restart the GUI.', QMessageBox.Ok, QMessageBox.Cancel)
         if ret == QMessageBox.Ok:
             #command_string = "ssh robotnik@192.168.1.10 sudo -S <<< \"R0b0tn1K\" reboot \n"
             command_string = SCRIPTS_PATH + "reboot.sh"
-            print(command_string)
+            logger.info(command_string)
             os.system(command_string)
 
     ###TEST APRIETE AUTOMATICO: si el nodo de las galgas falla se va  a liar
+# Función: Aut press tool.
     def aut_press_tool(self):
         global angle_tool
         gripper_move_service = rospy.ServiceProxy(srv_finger_set_pose, set_odometry)
@@ -907,20 +959,20 @@ class KukaGUI(QWidget, WidgetsManagement):
         old_pos_x = 0
         self.desactivate_buttons()
         
-        print("[aut_press_tool] Iniciando ciclo de cierre de herramienta")
+        logger.info("[aut_press_tool] Iniciando ciclo de cierre de herramienta")
 
         # Primer bucle: Cerrar la herramienta (ajustar ángulo)
         while press_counter < 5:
-            print("press_counter:", press_counter)
-            print("angle_tool:", angle_tool)
+            logger.debug("press_counter:: %s", press_counter)
+            logger.debug("angle_tool:: %s", angle_tool)
             try:
                 gripper_move_service(x_tool, 0, 0, angle_tool - 0.01)
             except rospy.ServiceException as e:
-                print("[aut_press_tool] Error llamando al servicio de pinza (cerrando):", str(e))
+                logger.error("[aut_press_tool] Error llamando al servicio de pinza (cerrando):: %s", str(e))
                 self.activate_buttons()
                 return
             except Exception as e:
-                print("[aut_press_tool] Error inesperado llamando al servicio (cerrando):", str(e))
+                logger.error("[aut_press_tool] Error inesperado llamando al servicio (cerrando):: %s", str(e))
                 self.activate_buttons()
                 return
             self.sleep_loop(0.15)
@@ -928,23 +980,23 @@ class KukaGUI(QWidget, WidgetsManagement):
                 press_counter += 1
             else:
                 press_counter = 0
-            print("Δx_tool:", abs(x_tool - old_pos_x))
-            print("current:", tool_current)
-            print("counter:", press_counter)
+            logger.debug("Δx_tool:: %s", abs(x_tool - old_pos_x))
+            logger.debug("current:: %s", tool_current)
+            logger.debug("counter:: %s", press_counter)
 
         press_counter = 0
         # Segundo bucle: Abrir ligeramente la herramienta para afinar posición
-        print("[aut_press_tool] Iniciando ciclo de apertura fina")
+        logger.info("[aut_press_tool] Iniciando ciclo de apertura fina")
         while press_counter < 5:
-            print("press_counter:", press_counter)
+            logger.debug("press_counter:: %s", press_counter)
             try:
                 gripper_move_service(x_tool + 0.02, 0, 0, angle_tool)
             except rospy.ServiceException as e:
-                print("[aut_press_tool] Error llamando al servicio de pinza (abriendo):", str(e))
+                logger.error("[aut_press_tool] Error llamando al servicio de pinza (abriendo):: %s", str(e))
                 self.activate_buttons()
                 return
             except Exception as e:
-                print("[aut_press_tool] Error inesperado llamando al servicio (abriendo):", str(e))
+                logger.error("[aut_press_tool] Error inesperado llamando al servicio (abriendo):: %s", str(e))
                 self.activate_buttons()
                 return
             self.sleep_loop(0.15)
@@ -953,18 +1005,20 @@ class KukaGUI(QWidget, WidgetsManagement):
             else:
                 press_counter = 0
                 old_pos_x = x_tool
-            print("current:", tool_current)
-            print("counter:", press_counter)
+            logger.debug("current:: %s", tool_current)
+            logger.debug("counter:: %s", press_counter)
         
         self.sleep_loop(0.5)
-        print("[aut_press_tool] Finalizado, reactivando botones")
+        logger.info("[aut_press_tool] Finalizado, reactivando botones")
         self.activate_buttons() 
         
+# Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_tool_state(self, data):
         global x_tool, angle_tool
         x_tool = data.position[2]
         angle_tool = data.position[3]
     
+# Gestión de acción de botón: 'Reset robot'.
     def press_reset_robot_button(self):
         global rob_connected
         #command_string = "rosnode kill /kuka_pad/ps4_joystick; sleep 1; rosnode kill /kuka_pad/itowa_safe_joystick; sleep 1; rosnode kill /kuka_pad/robotnik_trajectory_pad_node; sleep 1; rosnode kill /kuka_robot/kuka_cartesian_hardware_interface; sleep 1; roslaunch kuka_robot_bringup kuka_robot_bringup_standalone.launch &"
@@ -974,6 +1028,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.mode_label.setText("NOT CONNECTED")
         rob_connected = False
            
+# Función: Sleep loop.
     def sleep_loop(self,delay):
         loop = QtCore.QEventLoop()
         timer = QtCore.QTimer()
