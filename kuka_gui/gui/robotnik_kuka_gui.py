@@ -28,8 +28,11 @@ from kuka_rsi_cartesian_hw_interface.srv import set_A1_A6
 from global_var import *
 from global_flags import *
 from obus_manager import ObusManager
+from widgets_management import WidgetsManagement
+from calibres_config import *
 
-class KukaGUI(QWidget):
+
+class KukaGUI(QWidget, WidgetsManagement):
         
     do_callback_motor_status = QtCore.pyqtSignal(RobotnikMotorsStatus)
     do_callback_horiz_force = QtCore.pyqtSignal(Float64)
@@ -48,7 +51,7 @@ class KukaGUI(QWidget):
         # Give QObjects reasonable names
         self.setObjectName('RqtKukaUi')
         
-        print '__Checking background processes__'   
+        print("Checking background processes")
         #Joysticks management with multiplexor        
         #command_string = "screen -S mux -d -m rosrun topic_tools mux /kuka_pad/joy /kuka_pad/ps4_joy /kuka_pad/itowa_joy mux:=mux_joy __name:=joy_mux_node &"
         command_string = "rosrun topic_tools mux /kuka_pad/joy /kuka_pad/ps4_joy /kuka_pad/itowa_joy mux:=mux_joy __name:=joy_mux_node &"
@@ -74,7 +77,6 @@ class KukaGUI(QWidget):
         self.Tare_Reset_Button.pressed.connect(self.press_tare_reset_button)
         self.Reset_Ext_Button.pressed.connect(self.press_reset_external_pc_button)
         self.Reset_Robot_Button.pressed.connect(self.press_reset_robot_button)
-        #self.Reset_Robot_Button.hide()
         self.MoveToTable_Button.pressed.connect(self.press_homming_button)#self.press_move_to_rotation_table_button) 
         self.PickTest_Button.pressed.connect(self.press_picktest_button)
         self.Gripper_Homing_Button.pressed.connect(self.press_tool_homming)
@@ -168,15 +170,30 @@ class KukaGUI(QWidget):
                 #ret=QMessageBox.critical(self, "WARNING!", 'Tool Orientation service not available', QMessageBox.Ok)
 
         
-        self.setWindowTitle(" ")           
+        self.setWindowTitle("ROBOTNIK OBUSES GUI")
+        self.resize(620,1100)
         self._name = "RqtKuka"
                 
         #Variable para almacenar el ultimo obus seleccionado
         self.last_obus_selected_pick = -1
         self.last_obus_selected_place = -1
 
+    
+    #inicialización del estado de los obuses para state_dict['tipo', grupo, idx]
+    def init_state_dict(self):
+        d = {}
+        # Place
+        for grupo, n in [(2,2), (4,4), (8,8), (16,16)]:
+            for idx in xrange(1, n+1):
+                d[('place', grupo, idx)] = False
+        # Pick
+        for grupo, n in [(2,4), (4,5), (8,14), (16,20)]:
+            for idx in xrange(1, n+1):
+                d[('pick', grupo, idx)] = False
+        return d
 
-    #filtro para detectar el raton y ponerlo verde si esta el cursor encima o dejarlo blanco si no
+        #filtro para detectar el raton y ponerlo verde si esta el cursor encima o dejarlo blanco si no
+    
     def eventFilter(self, object, event):               
         if not KUKA_AUT:
             # huevera 16
@@ -308,21 +325,6 @@ class KukaGUI(QWidget):
 
         return False
 
-    
-    #inicialización del estado de los obuses para state_dict['tipo', grupo, idx]
-    def init_state_dict(self):
-        d = {}
-        # Place
-        for grupo, n in [(2,2), (4,4), (8,8), (16,16)]:
-            for idx in xrange(1, n+1):
-                d[('place', grupo, idx)] = False
-        # Pick
-        for grupo, n in [(2,4), (4,5), (8,14), (16,20)]:
-            for idx in xrange(1, n+1):
-                d[('pick', grupo, idx)] = False
-        return d
-
-
     def desactivate_buttons(self):
 
         self.PickTest_Button.setEnabled(False)
@@ -400,42 +402,6 @@ class KukaGUI(QWidget):
     def press_reset_positions_button_pick(self):
         self.obus_manager.reset_positions_pick()        
 
-    def select_icon(self,operation, obus_id, state):        
-        #operation es "pick" o "place"
-        #obus_id es un vector donde la posicion [0] contiene el calibre y posicion [1] la posicion
-        #state=0 normal - blanco
-        #state=1 resaltado - verde
-        #state=2 seleccionado - rojo
-        calibre = int(obus_id[0])
-        num = int(obus_id[1])
-        
-        if calibre == 2:
-            return imgObus2[state]
-        elif calibre == 4:
-            return imgObus4[state]
-        elif calibre == 8:
-            if operation == 'pick':
-                if num < 8:
-                    return imgObus8izq[state]                    
-                if num >= 8:
-                    return imgObus8der[state]
-            elif operation == 'place':
-                if num < 5:
-                    return imgObus8izq[state]
-                if num >= 5:
-                    return imgObus8der[state]
-        elif calibre == 16:
-            if operation == 'pick':
-                if num < 11:
-                    return imgObus16izq[state]
-                elif num >= 11:
-                    return imgObus16der[state]
-            elif operation == 'place':
-                if num < 9:
-                    return imgObus16izq[state]
-                elif num >= 9:
-                    return imgObus16der[state]
-
     def press_undo_positions_button_pick(self):
         print("Undo pick button pressed")
         if self.last_obus_selected_pick == -1:
@@ -457,7 +423,6 @@ class KukaGUI(QWidget):
         self.last_obus_selected_pick = -1
         self.origin_pick_quad = 0        
 
-
     def press_undo_positions_button_place(self):
         if self.last_obus_selected_place == -1:
             return
@@ -476,7 +441,6 @@ class KukaGUI(QWidget):
             btn.installEventFilter(self)
 
         self.last_obus_selected_place = -1
-
 
     def callback_moving(self, data):
         global KUKA_AUT, first_time_moving_kuka
@@ -637,691 +601,48 @@ class KukaGUI(QWidget):
             except rospy.ServiceException, e:
                 print "Service call failed: %s"%e
                 ret=QMessageBox.critical(self, "WARNING!", 'Movement Service not available.', QMessageBox.Ok)    
-
-
-    #Pick buttons obus 2
-    def press_pick_obus2_1_button(self):
-        self.obus_manager.press_obus_button('pick', 2, 1,
-            side='left',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_left_A6)
-        )
-
-    def press_pick_obus2_2_button(self):
-        self.obus_manager.press_obus_button('pick', 2, 2,
-            side='left',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_left_A6)
-        )
-
-    def press_pick_obus2_3_button(self):
-        self.obus_manager.press_obus_button('pick', 2, 3,
-            side='right',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_right_A6)
-        )        
-
-    def press_pick_obus2_4_button(self):
-        self.obus_manager.press_obus_button('pick', 2, 4,
-            side='right',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_right_A6)
-        )
-                
-    #Pick buttons obus 4
-    def press_pick_obus4_1_button(self):
-        self.obus_manager.press_obus_button('pick', 4, 1, 
-            side='left',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_left_A6)
-        )
-        
-    def press_pick_obus4_2_button(self):
-        self.obus_manager.press_obus_button('pick', 4, 2, 
-            side='left',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_left_A6)
-        )        
-
-    def press_pick_obus4_3_button(self):
-        self.obus_manager.press_obus_button('pick', 4, 3, 
-            side='left',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_left_A6)
-        )  
-
-    def press_pick_obus4_4_button(self):
-        self.obus_manager.press_obus_button('pick', 4, 4, 
-            side='right',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_right_A6)
-        )
-        
-
-    def press_pick_obus4_5_button(self):
-        self.obus_manager.press_obus_button('pick', 4, 5, 
-            side='right',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_right_A6)
-        )        
-
-    #Pick buttons obus 8
-    def press_pick_obus8_1_button(self):
-        self.obus_manager.press_obus_button('pick', 8, 1, 
-            side='left',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_left_A6)
-        )        
-
-    def press_pick_obus8_2_button(self):
-        self.obus_manager.press_obus_button('pick', 8, 2, 
-            side='left',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_left_A6)
-        )
-
-    def press_pick_obus8_3_button(self):
-        self.obus_manager.press_obus_button('pick', 8, 3, 
-            side='left',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_left_A6)
-        )        
-
-    def press_pick_obus8_4_button(self):
-        self.obus_manager.press_obus_button('pick', 8, 4, 
-            side='left',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_left_A6)
-        )        
-
-    def press_pick_obus8_5_button(self):
-        self.obus_manager.press_obus_button('pick', 8, 5, 
-            side='right',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_right_A6)
-        )        
-
-    def press_pick_obus8_6_button(self):
-        self.obus_manager.press_obus_button('pick', 8, 6, 
-            side='right',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_right_A6)
-        )        
-
-    def press_pick_obus8_7_button(self):
-        self.obus_manager.press_obus_button('pick', 8, 7, 
-            side='right',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_right_A6)
-        )         
-
-    def press_pick_obus8_8_button(self):
-        self.obus_manager.press_obus_button('pick', 8, 8, 
-            side='left',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_left_A6)
-        )          
-                
-    def press_pick_obus8_9_button(self):
-        self.obus_manager.press_obus_button('pick', 8, 9, 
-            side='left',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_left_A6)
-        )          
-
-    def press_pick_obus8_10_button(self):
-        self.obus_manager.press_obus_button('pick', 8, 10, 
-            side='left',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_left_A6)
-        )         
-                
-    def press_pick_obus8_11_button(self):
-        self.obus_manager.press_obus_button('pick', 8, 11, 
-            side='left',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_left_A6)
-        )          
-
-    def press_pick_obus8_12_button(self):
-        self.obus_manager.press_obus_button('pick', 8, 12, 
-            side='right',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_right_A6)
-        )        
-
-    def press_pick_obus8_13_button(self):
-        self.obus_manager.press_obus_button('pick', 8, 13, 
-            side='right',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_right_A6)
-        )             
-
-    def press_pick_obus8_14_button(self):
-        self.obus_manager.press_obus_button('pick', 8, 14, 
-            side='right',
-            pre_z=Prepick_Pose_z, 
-            axis_service=srv_move_A1_A6, 
-            axis_args=(pick_A1, pick_right_A6)
-        )        
-
-    #Pick buttons obus 16
-    def press_pick_obus16_1_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 1,
-            side='left',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_left_A6)
-        )
-
-    def press_pick_obus16_2_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 2,
-            side='left',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_left_A6)
-        )
-
-    def press_pick_obus16_3_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 3,
-            side='left',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_left_A6)
-        )
-
-    def press_pick_obus16_4_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 4,
-            side='left',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_left_A6)
-        )
-
-    def press_pick_obus16_5_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 5,
-            side='left',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_left_A6)
-        )
-
-    def press_pick_obus16_6_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 6,
-            side='right',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_right_A6)
-        )
-
-    def press_pick_obus16_7_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 7,
-            side='right',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_right_A6)
-        )
-
-    def press_pick_obus16_8_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 8,
-            side='right',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_right_A6)
-        )
-
-    def press_pick_obus16_9_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 9,
-            side='right',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_right_A6)
-        )
-
-    def press_pick_obus16_10_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 10,
-            side='right',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_right_A6)
-        )
-
-    def press_pick_obus16_11_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 11,
-            side='left',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_left_A6)
-        )
-
-    def press_pick_obus16_12_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 12,
-            side='left',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_left_A6)
-        )
-
-    def press_pick_obus16_13_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 13,
-            side='left',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_left_A6)
-        )
-
-    def press_pick_obus16_14_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 14,
-            side='left',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_left_A6)
-        )
-
-    def press_pick_obus16_15_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 15,
-            side='left',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_left_A6)
-        )
-
-    def press_pick_obus16_16_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 16,
-            side='right',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_right_A6)
-        )
-
-    def press_pick_obus16_17_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 17,
-            side='right',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_right_A6)
-        )
-
-    def press_pick_obus16_18_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 18,
-            side='right',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_right_A6)
-        )
-
-    def press_pick_obus16_19_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 19,
-            side='right',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_right_A6)
-        )
-
-    def press_pick_obus16_20_button(self):
-        self.obus_manager.press_obus_button(
-            'pick', 16, 20,
-            side='right',
-            pre_z=Prepick_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(pick_A1, pick_right_A6)
-        )
-
-
-    #pressing obuses para place
-    #obus1
-    def press_place_obus2_1_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 2, 1,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus2_2_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 2, 2,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
-    def press_place_obus4_1_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 4, 1,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus4_2_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 4, 2,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus4_3_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 4, 3,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
-    def press_place_obus4_4_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 4, 4,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
-    def press_place_obus8_1_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 8, 1,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus8_2_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 8, 2,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus8_3_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 8, 3,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
-    def press_place_obus8_4_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 8, 4,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
-    def press_place_obus8_5_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 8, 5,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus8_6_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 8, 6,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus8_7_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 8, 7,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
-    def press_place_obus8_8_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 8, 8,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
-    # ---- OBUS 16 (1 al 16) ----
-
-    def press_place_obus16_1_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 1,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus16_2_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 2,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus16_3_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 3,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus16_4_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 4,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus16_5_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 5,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
-    def press_place_obus16_6_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 6,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
-    def press_place_obus16_7_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 7,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
-    def press_place_obus16_8_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 8,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
-    def press_place_obus16_9_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 9,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus16_10_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 10,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus16_11_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 11,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus16_12_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 12,
-            side='left',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_left_A6)
-        )
-
-    def press_place_obus16_13_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 13,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
-    def press_place_obus16_14_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 14,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
-    def press_place_obus16_15_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 15,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
-    def press_place_obus16_16_button(self):
-        self.obus_manager.press_obus_button(
-            'place', 16, 16,
-            side='right',
-            pre_z=Preplace_Pose_z,
-            axis_service=srv_move_A1_A6,
-            axis_args=(place_A1, place_right_A6)
-        )
-
                     
     def press_tool_homming(self):
-        ret = QMessageBox.warning(self, "WARNING!", 'Are you sure? \nBe sure there is no obus picked', QMessageBox.Ok, QMessageBox.Cancel)
-        #ret = QMessageBox.critical(self, "WARNING!", 'The tool is activated and there is some weight \ndetected by the gauges!', QMessageBox.Ok)
+        ret = QMessageBox.warning(self, "WARNING!", 'Are you sure? \nBe sure there is no obus picked', QMessageBox.Ok, QMessageBox.Cancel)        
         if ret == QMessageBox.Ok:
-            limit_cont_current_service=rospy.ServiceProxy(srv_limit_cont_current, set_float_value)
-            limit_peak_current_service=rospy.ServiceProxy(srv_limit_peak_current, set_float_value)
-            limit_cont_current_service(current_limit_0)
-            limit_peak_current_service(current_limit_0)
+            
             #Call tool homing method
             global weight_empty, weight_read, TOOL_HOMED
             try:
-                gripper_move_service = rospy.ServiceProxy(srv_finger_set_pose,set_odometry)
+                limit_cont_current_service=rospy.ServiceProxy(srv_limit_cont_current, set_float_value)
+                limit_peak_current_service=rospy.ServiceProxy(srv_limit_peak_current, set_float_value)
+                limit_cont_current_service(current_limit_0)
+                limit_peak_current_service(current_limit_0)
+                #gripper_move_service = rospy.ServiceProxy(srv_finger_set_pose,set_odometry)
                 homing_service = rospy.ServiceProxy(srv_tool_homing, home)           
                 ret = homing_service()
-                TOOL_HOMED=True 
+                #TOOL_HOMED=True 
                 #weight_empty=weight_read
                 #gripper_move_service(0.02,0,0,-0.15)
                 if ret == True:
-                    TOOL_HOMED=True                 
+                    TOOL_HOMED=True
+                else:
+                    print("ERROR: Homing service returns false!")
+                    #antes se hacía el TOOL_HOMED=True aunque fallase
+                #set current again
+                if finger_type == 0:
+                    limit_cont_current_service(current_limit_0)
+                    limit_peak_current_service(current_limit_0)
+                elif finger_type == 1:
+                    limit_cont_current_service(current_limit_1)
+                    limit_peak_current_service(current_limit_1)
+                elif finger_type == 2:
+                    limit_cont_current_service(current_limit_2)
+                    limit_peak_current_service(current_limit_2)
+                elif finger_type == 3:
+                    limit_cont_current_service(current_limit_cont)
+                    limit_peak_current_service(current_limit_3)
+                elif finger_type == 4:
+                    limit_cont_current_service(current_limit_cont)
+                    limit_peak_current_service(current_limit_4)               
             except rospy.ServiceException, e:
                 print "Service call failed: %s"%e
-            #set current again
-            if finger_type == 0:
-                limit_cont_current_service(current_limit_0)
-                limit_peak_current_service(current_limit_0)
-            elif finger_type == 1:
-                limit_cont_current_service(current_limit_1)
-                limit_peak_current_service(current_limit_1)
-            elif finger_type == 2:
-                limit_cont_current_service(current_limit_2)
-                limit_peak_current_service(current_limit_2)
-            elif finger_type == 3:
-                limit_cont_current_service(current_limit_cont)
-                limit_peak_current_service(current_limit_3)
-            elif finger_type == 4:
-                limit_cont_current_service(current_limit_cont)
-                limit_peak_current_service(current_limit_4)
-                
+            
     def press_finger_adjust_button(self):
         if(not TOOL_HOMED):
                 QMessageBox.warning(self, "WARNING!", 'Are you sure? \nHoming of the tool should be done first', QMessageBox.Ok, QMessageBox.Cancel)
@@ -1355,7 +676,6 @@ class KukaGUI(QWidget):
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
 
-
     def press_led_off_button(self):
         try:
             led_service = rospy.ServiceProxy(srv_digital_io, set_digital_output)
@@ -1380,7 +700,6 @@ class KukaGUI(QWidget):
                                         print "Service call failed: %s"%e
         else : 
                 self.deadMan_check.nextCheckState()
-                
                 
     def toolAngle_state_changed(self):
         ret_q = QMessageBox.warning(self, "WARNING!", 'Changes to the current configuration will be applied', QMessageBox.Ok, QMessageBox.Cancel)
@@ -1432,7 +751,6 @@ class KukaGUI(QWidget):
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
             
-
     def press_homming_button(self):     
         global KUKA_AUT, pos_z_kuka, pos_a_kuka, CURRENT_STATE
         ret = QMessageBox.warning(self, "WARNING!", 
@@ -1477,7 +795,6 @@ class KukaGUI(QWidget):
         except Exception, e:
             print("[press_homming_button] ERROR INESPERADO: %s" % e)
 
-            
     def press_picktest_button(self):
         global KUKA_AUT
         ret = QMessageBox.warning(self, "WARNING!", 'Are you sure? \nRobot moves automatically', QMessageBox.Ok, QMessageBox.Cancel)
@@ -1492,15 +809,19 @@ class KukaGUI(QWidget):
             except rospy.ServiceException, e:
                 print "Service call failed: %s"%e
 
-    
     def press_tare_button(self):
-        tare_service = rospy.ServiceProxy(srv_tare_gauges, SetBool)
-        ret = tare_service(True)
+        try:
+            tare_service = rospy.ServiceProxy(srv_tare_gauges, SetBool)
+            ret = tare_service(True)
+        except rospy.ServiceException, e:
+                print "Service call failed: %s"%e
 
     def press_tare_reset_button(self):
-        tare_service = rospy.ServiceProxy(srv_tare_gauges, SetBool)
-        ret = tare_service(False)
-
+        try:
+            tare_service = rospy.ServiceProxy(srv_tare_gauges, SetBool)
+            ret = tare_service(False)
+        except rospy.ServiceException, e:
+                print "Service call failed: %s"%e
     #################################################JOY SELECTION
     def joy_selected(self, index):
         if index == 0:
@@ -1511,376 +832,71 @@ class KukaGUI(QWidget):
             print 'ITOWA selected'
             command_string = "rosrun topic_tools mux_select mux_joy /kuka_pad/itowa_joy"
             os.system(command_string)
-
     
     #################################################CALIBRE SELECTION
     def calibre_selected(self, index):
         global finger_type, weight_expected_min, weight_expected_max, current_limit_picked
-        print 'Selected:',index
+
+        print('Selected:', index)
         finger_type = index
+        calibre = CALIBRES.get(index, CALIBRES[0])
+
+        # Desactivar botones si no hay calibre
         if index == 0:
-            print 'No gripper selected'
             self.desactivate_buttons()
-            str_weight_expected = "[N/A, N/A]"
-            self.weight_limited.setText("N/A");
-            self.weight_label_expected_var.setText(str_weight_expected)
-            pixmap = QtGui.QPixmap(IMG_PATH+"/fondo_huevera_0.png")
-            self.background_plate.setPixmap(pixmap)
-            self.background_plate_pick.setPixmap(pixmap)
-            self.PlaceObusButton2_1.hide()
-            self.PlaceObusButton2_2.hide()            
-            self.PlaceObusButton4_1.hide()
-            self.PlaceObusButton4_2.hide()
-            self.PlaceObusButton4_3.hide()
-            self.PlaceObusButton4_4.hide()
-            self.PlaceObusButton8_1.hide()
-            self.PlaceObusButton8_2.hide()
-            self.PlaceObusButton8_3.hide()
-            self.PlaceObusButton8_4.hide()
-            self.PlaceObusButton8_5.hide()
-            self.PlaceObusButton8_6.hide()
-            self.PlaceObusButton8_7.hide()
-            self.PlaceObusButton8_8.hide()            
-            self.PlaceObusButton16_1.hide()
-            self.PlaceObusButton16_2.hide()
-            self.PlaceObusButton16_3.hide()
-            self.PlaceObusButton16_4.hide()
-            self.PlaceObusButton16_5.hide()
-            self.PlaceObusButton16_6.hide()
-            self.PlaceObusButton16_7.hide()
-            self.PlaceObusButton16_8.hide()  
-            self.PlaceObusButton16_9.hide()
-            self.PlaceObusButton16_10.hide()
-            self.PlaceObusButton16_11.hide()
-            self.PlaceObusButton16_12.hide()
-            self.PlaceObusButton16_13.hide()
-            self.PlaceObusButton16_14.hide()
-            self.PlaceObusButton16_15.hide()
-            self.PlaceObusButton16_16.hide()   
-            for i in range(1, 21):
-                name_method='PickObusButton16'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()
-            for i in range(1, 15):
-                name_method='PickObusButton8'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()
-            for i in range(1, 6):
-                name_method='PickObusButton4'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()
-            for i in range(1, 5):
-                name_method='PickObusButton2'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()
+            self.weight_limited.setText("N/A")
+            self.weight_label_expected_var.setText("[N/A, N/A]")
         else:
-            #TODO: check if the gripper is empty. If there is some load not allow to move autonomously
-            self.activate_buttons()            
-        if index == 1:            
+            self.activate_buttons()
+
+        # Establecer rangos de peso esperados
+        weight_expected_min = calibre["weight_min"] or 0
+        weight_expected_max = calibre["weight_max"] or 0
+        str_weight_expected = "[{}, {}]".format(
+            calibre["weight_min"] if calibre["weight_min"] is not None else "N/A",
+            calibre["weight_max"] if calibre["weight_max"] is not None else "N/A",
+        )
+        self.weight_label_expected_var.setText(str_weight_expected)
+        self.weight_limited.setText(calibre["weight_limited"])
+
+        # Cambiar imágenes de fondo
+        pixmap = QtGui.QPixmap(IMG_PATH + "/" + calibre["bg_img"])
+        self.background_plate.setPixmap(pixmap)
+        pixmap_pick = QtGui.QPixmap(IMG_PATH + "/" + calibre["bg_pick_img"])
+        self.background_plate_pick.setPixmap(pixmap_pick)
+
+        # Oculta todos los botones y muestra solo los del calibre elegido
+        hide_buttons(self, ALL_BTNS)
+        show_buttons(self, calibre["show_place"] + calibre["show_pick"])
+
+        # Cambiar límites de corriente si aplica
+        if calibre["current_limit"]:
+            limit_cont_current_service = rospy.ServiceProxy(srv_limit_cont_current, set_float_value)
+            limit_peak_current_service = rospy.ServiceProxy(srv_limit_peak_current, set_float_value)
+            limit_value = globals()[calibre["current_limit"]]
             try:
-                rospy.delete_param('robot_description')
-            except KeyError:
-                print "value not set"
-            self.load_robot_description(index)
-            weight_expected_min = 4
-            weight_expected_max = 9
-            str_weight_expected = "["+str(weight_expected_min)+ ", "+ str(weight_expected_max)+ "]"
-            self.weight_label_expected_var.setText(str_weight_expected)
-            self.weight_limited.setText("3");
-            limit_cont_current_service=rospy.ServiceProxy(srv_limit_cont_current, set_float_value)
-            limit_peak_current_service=rospy.ServiceProxy(srv_limit_peak_current, set_float_value)
-            try:
-                limit_cont_current_service(current_limit_1)
-                limit_peak_current_service(current_limit_1)
-            except (rospy.ServiceException, rospy.ROSException), e:
+                limit_cont_current_service(limit_value)
+                limit_peak_current_service(limit_value)
+            except (rospy.ServiceException, rospy.ROSException) as e:
                 rospy.logerr("Service call failed: %s" % (e,))
-                
-            current_limit_picked = current_limit_1
+            current_limit_picked = limit_value
 
-            pixmap = QtGui.QPixmap(IMG_PATH+"/rotated-fondo_huevera_16.png")
-            self.background_plate.setPixmap(pixmap)
-            pixmap_pick = QtGui.QPixmap(IMG_PATH+"/BoxPick_3.png")
-            self.background_plate_pick.setPixmap(pixmap_pick)
-            self.PlaceObusButton16_1.show()
-            self.PlaceObusButton16_2.show()
-            self.PlaceObusButton16_3.show()
-            self.PlaceObusButton16_4.show()
-            self.PlaceObusButton16_5.show()
-            self.PlaceObusButton16_6.show()
-            self.PlaceObusButton16_7.show()
-            self.PlaceObusButton16_8.show()  
-            self.PlaceObusButton16_9.show()
-            self.PlaceObusButton16_10.show()
-            self.PlaceObusButton16_11.show()
-            self.PlaceObusButton16_12.show()
-            self.PlaceObusButton16_13.show()
-            self.PlaceObusButton16_14.show()
-            self.PlaceObusButton16_15.show()
-            self.PlaceObusButton16_16.show()   
-            self.PlaceObusButton2_1.hide()
-            self.PlaceObusButton2_2.hide()
-            self.PlaceObusButton4_1.hide()
-            self.PlaceObusButton4_2.hide()
-            self.PlaceObusButton4_3.hide()
-            self.PlaceObusButton4_4.hide()            
-            self.PlaceObusButton8_1.hide()
-            self.PlaceObusButton8_2.hide()
-            self.PlaceObusButton8_3.hide()
-            self.PlaceObusButton8_4.hide()
-            self.PlaceObusButton8_5.hide()
-            self.PlaceObusButton8_6.hide()
-            self.PlaceObusButton8_7.hide()
-            self.PlaceObusButton8_8.hide()
-            for i in range(1, 21):
-                name_method='PickObusButton16'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.show()
-            for i in range(1, 15):
-                name_method='PickObusButton8'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()
-            for i in range(1, 6):
-                name_method='PickObusButton4'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()
-            for i in range(1, 5):
-                name_method='PickObusButton2'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()
+        # Ajusta el máximo del progressbar
+        if calibre["weight_max"]:
+            self.weightProgressBar.setMaximum(calibre["weight_max"] * 1.3)
+        else:
+            self.weightProgressBar.setMaximum(100)
 
-        elif index == 2:
-            try:
-                rospy.delete_param('robot_description')
-            except KeyError:
-                print "value not set"
-            self.load_robot_description(index+1)
-            weight_expected_min = 13
-            weight_expected_max = 18
-            str_weight_expected = "["+str(weight_expected_min)+ ", "+ str(weight_expected_max)+ "]"
-            self.weight_label_expected_var.setText(str_weight_expected)
-
-            self.weight_limited.setText("4");
-            limit_cont_current_service=rospy.ServiceProxy(srv_limit_cont_current, set_float_value)
-            limit_peak_current_service=rospy.ServiceProxy(srv_limit_peak_current, set_float_value)
-            try:
-                limit_cont_current_service(current_limit_2)
-                limit_peak_current_service(current_limit_2)
-            except (rospy.ServiceException, rospy.ROSException), e:
-                rospy.logerr("Service call failed: %s" % (e,))
-
-            current_limit_picked = current_limit_2
-
-
-            pixmap = QtGui.QPixmap(IMG_PATH+"/rotated-fondo_huevera_8.png")
-            self.background_plate.setPixmap(pixmap)
-            pixmap_pick = QtGui.QPixmap(IMG_PATH+"/BoxPick_3.png")
-            self.background_plate_pick.setPixmap(pixmap_pick)
-            self.PlaceObusButton2_1.hide()
-            self.PlaceObusButton2_2.hide()
-            self.PlaceObusButton4_1.hide()
-            self.PlaceObusButton4_2.hide()
-            self.PlaceObusButton4_3.hide()
-            self.PlaceObusButton4_4.hide()                        
-            self.PlaceObusButton8_1.show()
-            self.PlaceObusButton8_2.show()
-            self.PlaceObusButton8_3.show()
-            self.PlaceObusButton8_4.show()
-            self.PlaceObusButton8_5.show()
-            self.PlaceObusButton8_6.show()
-            self.PlaceObusButton8_7.show()
-            self.PlaceObusButton8_8.show()
-            self.PlaceObusButton16_1.hide()
-            self.PlaceObusButton16_2.hide()
-            self.PlaceObusButton16_3.hide()
-            self.PlaceObusButton16_4.hide()
-            self.PlaceObusButton16_5.hide()
-            self.PlaceObusButton16_6.hide()
-            self.PlaceObusButton16_7.hide()
-            self.PlaceObusButton16_8.hide()  
-            self.PlaceObusButton16_9.hide()
-            self.PlaceObusButton16_10.hide()
-            self.PlaceObusButton16_11.hide()
-            self.PlaceObusButton16_12.hide()
-            self.PlaceObusButton16_13.hide()
-            self.PlaceObusButton16_14.hide()
-            self.PlaceObusButton16_15.hide()
-            self.PlaceObusButton16_16.hide() 
-            for i in range(1, 21):
-                name_method='PickObusButton16'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()
-            for i in range(1, 15):
-                name_method='PickObusButton8'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.show()
-            for i in range(1, 6):
-                name_method='PickObusButton4'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()
-            for i in range(1, 5):
-                name_method='PickObusButton2'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()  
-
-        elif index == 3:
-            try:
-                rospy.delete_param('robot_description')
-            except KeyError:
-                print "value not set"
-            self.load_robot_description(index+1)
-            weight_expected_min = 18
-            weight_expected_max = 46
-            str_weight_expected = "["+str(weight_expected_min)+ ", "+ str(weight_expected_max)+ "]"
-            self.weight_label_expected_var.setText(str_weight_expected)
-
-            self.weight_limited.setText("7");
-            limit_cont_current_service=rospy.ServiceProxy(srv_limit_cont_current, set_float_value)
-            limit_peak_current_service=rospy.ServiceProxy(srv_limit_peak_current, set_float_value)
-            try:
-                limit_cont_current_service(current_limit_cont)
-                limit_peak_current_service(current_limit_3)
-            except (rospy.ServiceException, rospy.ROSException), e:
-                rospy.logerr("Service call failed: %s" % (e,))
-
-            current_limit_picked = current_limit_3
-
-            pixmap = QtGui.QPixmap(IMG_PATH+"/rotated-fondo_huevera_4.png")
-            self.background_plate.setPixmap(pixmap)
-            pixmap_pick = QtGui.QPixmap(IMG_PATH+"/BoxPick_3.png")
-            self.background_plate_pick.setPixmap(pixmap_pick)
-            self.PlaceObusButton4_1.show()
-            self.PlaceObusButton4_2.show()
-            self.PlaceObusButton4_3.show()
-            self.PlaceObusButton4_4.show()
-            self.PlaceObusButton2_1.hide()
-            self.PlaceObusButton2_2.hide()
-            self.PlaceObusButton8_1.hide()
-            self.PlaceObusButton8_2.hide()
-            self.PlaceObusButton8_3.hide()
-            self.PlaceObusButton8_4.hide()
-            self.PlaceObusButton8_5.hide()
-            self.PlaceObusButton8_6.hide()
-            self.PlaceObusButton8_7.hide()
-            self.PlaceObusButton8_8.hide()              
-            self.PlaceObusButton16_1.hide()
-            self.PlaceObusButton16_2.hide()
-            self.PlaceObusButton16_3.hide()
-            self.PlaceObusButton16_4.hide()
-            self.PlaceObusButton16_5.hide()
-            self.PlaceObusButton16_6.hide()
-            self.PlaceObusButton16_7.hide()
-            self.PlaceObusButton16_8.hide()  
-            self.PlaceObusButton16_9.hide()
-            self.PlaceObusButton16_10.hide()
-            self.PlaceObusButton16_11.hide()
-            self.PlaceObusButton16_12.hide()
-            self.PlaceObusButton16_13.hide()
-            self.PlaceObusButton16_14.hide()
-            self.PlaceObusButton16_15.hide()
-            self.PlaceObusButton16_16.hide()
-            for i in range(1, 21):
-                name_method='PickObusButton16'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()
-            for i in range(1, 15):
-                name_method='PickObusButton8'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()
-            for i in range(1, 6):
-                name_method='PickObusButton4'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.show()
-            for i in range(1, 5):
-                name_method='PickObusButton2'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide() 
-
-        elif index == 4:
-            try:
-                rospy.delete_param('robot_description')
-            except KeyError:
-                print "value not set"
-            self.load_robot_description(index+1)
-            weight_expected_min = 110
-            weight_expected_max = 130
-            str_weight_expected = "["+str(weight_expected_min)+ ", "+ str(weight_expected_max)+ "]"
-            self.weight_label_expected_var.setText(str_weight_expected)
-            self.weight_limited.setText("8");
-
-            limit_cont_current_service=rospy.ServiceProxy(srv_limit_cont_current, set_float_value)
-            limit_peak_current_service=rospy.ServiceProxy(srv_limit_peak_current, set_float_value)
-            try:
-                limit_cont_current_service(current_limit_cont)
-                limit_peak_current_service(current_limit_4)
-            except (rospy.ServiceException, rospy.ROSException), e:
-                rospy.logerr("Service call failed: %s" % (e,))
-
-            current_limit_picked = current_limit_4
-            
-            pixmap = QtGui.QPixmap(IMG_PATH+"/rotated-fondo_huevera_2.png")
-            self.background_plate.setPixmap(pixmap)
-            pixmap_pick = QtGui.QPixmap(IMG_PATH+"/BoxPick_3.png")
-            self.background_plate_pick.setPixmap(pixmap_pick)
-            self.PlaceObusButton2_1.show()
-            self.PlaceObusButton2_2.show()
-            self.PlaceObusButton4_1.hide()
-            self.PlaceObusButton4_2.hide()
-            self.PlaceObusButton4_3.hide()
-            self.PlaceObusButton4_4.hide()
-            self.PlaceObusButton8_1.hide()
-            self.PlaceObusButton8_2.hide()
-            self.PlaceObusButton8_3.hide()
-            self.PlaceObusButton8_4.hide()
-            self.PlaceObusButton8_5.hide()
-            self.PlaceObusButton8_6.hide()
-            self.PlaceObusButton8_7.hide()
-            self.PlaceObusButton8_8.hide()              
-            self.PlaceObusButton16_1.hide()
-            self.PlaceObusButton16_2.hide()
-            self.PlaceObusButton16_3.hide()
-            self.PlaceObusButton16_4.hide()
-            self.PlaceObusButton16_5.hide()
-            self.PlaceObusButton16_6.hide()
-            self.PlaceObusButton16_7.hide()
-            self.PlaceObusButton16_8.hide()  
-            self.PlaceObusButton16_9.hide()
-            self.PlaceObusButton16_10.hide()
-            self.PlaceObusButton16_11.hide()
-            self.PlaceObusButton16_12.hide()
-            self.PlaceObusButton16_13.hide()
-            self.PlaceObusButton16_14.hide()
-            self.PlaceObusButton16_15.hide()
-            self.PlaceObusButton16_16.hide()
-            for i in range(1, 21):
-                name_method='PickObusButton16'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()
-            for i in range(1, 15):
-                name_method='PickObusButton8'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()
-            for i in range(1, 6):
-                name_method='PickObusButton4'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.hide()
-            for i in range(1, 5):
-                name_method='PickObusButton2'+'_'+str(i)
-                test_method=getattr(self, name_method)
-                test_method.show()
-        #weight progress bar
-        self.weightProgressBar.setMaximum(weight_expected_max*1.3)
-
-
-    def load_robot_description(self, gripper_model):
-        command_string = "rosparam load ~/kuka_catkin_ws/src/kuka_experimental/kuka_robot_bringup/robot/bin/kr120toolv%d.urdf /robot_description" % gripper_model
-        os.system(command_string)
+    #def load_robot_description(self, gripper_model):
+    #    command_string = "rosparam load ~/kuka_catkin_ws/src/kuka_experimental/kuka_robot_bringup/robot/bin/kr120toolv%d.urdf /robot_description" % gripper_model
+    #    os.system(command_string)
         
     def press_reset_external_pc_button(self):
         ret = QMessageBox.warning(self, "WARNING!", 'Are you sure? \nExternal PC is going to reset.\n Wait 10 sec and restart the GUI.', QMessageBox.Ok, QMessageBox.Cancel)
         if ret == QMessageBox.Ok:
             #command_string = "ssh robotnik@192.168.1.10 sudo -S <<< \"R0b0tn1K\" reboot \n"
-            command_string = "~/kuka_catkin_ws/src/rqt_kuka/scripts/reboot.sh"
-            print command_string
+            command_string = SCRIPTS_PATH + "reboot.sh"
+            print(command_string)
             os.system(command_string)
 
     ###TEST APRIETE AUTOMATICO: si el nodo de las galgas falla se va  a liar
@@ -1957,8 +973,7 @@ class KukaGUI(QWidget):
         os.system(command_string)
         self.mode_label.setText("NOT CONNECTED")
         rob_connected = False
-        
-    
+           
     def sleep_loop(self,delay):
         loop = QtCore.QEventLoop()
         timer = QtCore.QTimer()

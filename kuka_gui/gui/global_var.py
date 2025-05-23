@@ -6,6 +6,7 @@ import os
 GUI_PATH = os.path.dirname(os.path.abspath(__file__)) + "/"
 UI_PATH = os.path.join(GUI_PATH, "resource", "RqtKuka.ui")
 IMG_PATH = os.path.join(GUI_PATH, "resource", "images") + "/"
+SCRIPTS_PATH = os.path.join(GUI_PATH, "scripts") + "/"
 
 #images
 #[0] original - blanca   [1] resaltada - verde    [2] seleccionada - roja
