@@ -4,13 +4,14 @@
 from python_qt_binding import QtGui
 from python_qt_binding.QtWidgets import QMessageBox
 import rospy
-from global_var import *
-from global_flags import *
+import global_var
+import global_flags
 from robotnik_msgs.srv import set_CartesianEuler_pose
 from kuka_rsi_cartesian_hw_interface.srv import set_A1_A6
 import logging
+import os
 
-logger = logging.getLogger('obus_manager')
+logger = logging.getLogger('robotnik_kuka_gui')
 
 class ObusManager:
     def __init__(self, parent):
@@ -120,11 +121,11 @@ class ObusManager:
         start, end: índices a revisar
         """
         tipo = action.lower()
-        logger.debug("[remove_event_filters] action=%s, group=%s, rango=%d-%d", (action, group, start, end))
+        logger.debug("[remove_event_filters] action=%s, group=%s, rango=%d-%d", action, group, start, end)
         for i in range(start, end+1):
             key = (tipo, group, i)
             state = self.parent.state_dict.get(key, False)
-            logger.debug("[remove_event_filters] Revisando %s: estado=%s", (key, state))
+            logger.debug("[remove_event_filters] Revisando %s: estado=%s", key, state)
             if state:
                 # Ojo con el nombre del botón, debe ser coherente con cómo lo creaste
                 btn_name = '%sObusButton%d_%d' % (action, group, i)  # Ejemplo: PickObus16_1
@@ -185,7 +186,7 @@ class ObusManager:
         axis_args: argumentos que quieres pasarle (lista o tuple)
         """
         
-        logger.debug("[Obus_manager] press_obus_button called: tipo=%s, grupo=%s, idx=%s, side=%s, pre_z=%s, icon_state=%s", (tipo, grupo, idx, side, pre_z, icon_state))
+        logger.debug("[Obus_manager] press_obus_button called: tipo=%s, grupo=%s, idx=%s, side=%s, pre_z=%s, icon_state=%s", tipo, grupo, idx, side, pre_z, icon_state)
 
         # Estado centralizado en el diccionario de la GUI principal
         state_key = (tipo, grupo, idx)
@@ -196,7 +197,7 @@ class ObusManager:
 
         # Verifica si ya está ocupado
         if self.parent.state_dict[state_key]:
-            logger.debug("[Obus_manager] Position %s already occupied.", (state_key,))
+            logger.debug("[Obus_manager] Position %s already occupied.", state_key)
             ret = QMessageBox.warning(self.parent, "ERROR!", 'Position already occupied.', QMessageBox.Ok)
             return
 
@@ -208,7 +209,7 @@ class ObusManager:
         # Marca como seleccionado
         self.parent.state_dict[state_key] = True
         setattr(self.parent, last_attr, '%d_%d' % (grupo, idx))
-        logger.debug("[Obus_manager] Set state %s as selected. last_attr=%s", (state_key, last_attr))
+        logger.debug("[Obus_manager] Set state %s as selected. last_attr=%s", state_key, last_attr)
         
 
         # Selección de cuadrante
@@ -239,7 +240,7 @@ class ObusManager:
             logger.debug("[Obus_manager] origin_pick_quad set to %s", self.parent.origin_pick_quad)
 
         # Cambia icono
-        logger.debug("[Obus_manager] Selecting icon for tipo=%s, grupo=%s, idx=%s, icon_state=%s" , (tipo, grupo, idx, icon_state))
+        logger.debug("[Obus_manager] Selecting icon for tipo=%s, grupo=%s, idx=%s, icon_state=%s" , tipo, grupo, idx, icon_state)
         icon = QtGui.QIcon()
         path = self.parent.select_icon(tipo, [grupo, idx], icon_state)
         logger.debug("[Obus_manager] Icon path selected: %s", path)
@@ -249,24 +250,24 @@ class ObusManager:
             logger.debug("[Obus_manager] Icon file exists: %s", path)
         icon.addPixmap(QtGui.QPixmap(path), QtGui.QIcon.Disabled)
         btn = getattr(self.parent, btn_name)
-        logger.debug("[Obus_manager] Setting icon on button: %s (%s)", (btn_name, btn))
+        logger.debug("[Obus_manager] Setting icon on button: %s (%s)", btn_name, btn)
         btn.setIcon(icon)
         logger.debug("[Obus_manager] Icon set successfully on %s", btn_name)
         # Llama a los servicios
         try:
             # Subida lenta en Z (prepick/preplace)
-            logger.debug("[Obus_manager] Calling rel_service with pre_z=%s, pos_z_kuka=%s", (pre_z, pos_z_kuka))
-            rel_service = rospy.ServiceProxy(srv_name_move_rel_slow, set_CartesianEuler_pose)
-            rel_service(0, 0, pre_z - pos_z_kuka, 0, 0, 0)
+            logger.debug("[Obus_manager] Calling rel_service with pre_z=%s, pos_z_kuka=%s", pre_z, global_var.pos_z_kuka)
+            rel_service = rospy.ServiceProxy(global_var.srv_name_move_rel_slow, set_CartesianEuler_pose)
+            rel_service(0, 0, pre_z - global_var.pos_z_kuka, 0, 0, 0)
             self.parent.sleep_loop(2)
-            while KUKA_AUT: self.parent.sleep_loop(0.3)
+            while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)
 
             # Movimiento en ejes A1_A6
             axis_service_proxy = rospy.ServiceProxy(axis_service, set_A1_A6)
             ret_axis = axis_service_proxy(*axis_args)
             if ret_axis is True:
                 global CURRENT_STATE
-                CURRENT_STATE = STATE_MOVING_TO_PLACE if tipo == 'pick' else STATE_MOVING_TO_PREPICK
+                CURRENT_STATE = global_var.STATE_MOVING_TO_PLACE if tipo == 'pick' else global_var.STATE_MOVING_TO_PREPICK
                 
             #TODO: añadir movimiento en cartesianas para centrar en la caja (por si se ha cambiado el radio)
 
