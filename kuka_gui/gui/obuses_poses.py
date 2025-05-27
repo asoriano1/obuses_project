@@ -23,6 +23,12 @@ table_pose_a = -178
 table_pose_b = pose_b
 table_pose_c = pose_c
 
+#centro en X de las cajas
+prepick_abs_x = 83.5
+prepick_abs_y = 1539.4
+preplace_abs_x = 184.5
+preplace_abs_y = -1590.4
+
 #Datos hueveras
 center_distance_16 = 129.38
 center_distance_8 = 260

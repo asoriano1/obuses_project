@@ -6,6 +6,7 @@ from python_qt_binding.QtWidgets import QMessageBox
 import rospy
 import global_var
 import global_flags
+import obuses_poses
 from robotnik_msgs.srv import set_CartesianEuler_pose
 from kuka_rsi_cartesian_hw_interface.srv import set_A1_A6
 import logging
@@ -262,21 +263,28 @@ class ObusManager:
             self.parent.sleep_loop(2)
             while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)
             
-            #Movimiento en cartesianas para centrar en la caja (por si se ha cambiado el radio)
-            #logger.debug("[Obus_manager] Calling rel_service with pre_z=%s, pos_z_kuka=%s", pre_z, global_var.pos_z_kuka)
-            #rel_service = rospy.ServiceProxy(global_var.srv_name_move_rel_slow, set_CartesianEuler_pose)
-            #rel_service(0, 0, pre_z - global_var.pos_z_kuka, 0, 0, 0)
-            #self.parent.sleep_loop(2)
-            #while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)
-            
-
             # Movimiento en ejes A1_A6
             axis_service_proxy = rospy.ServiceProxy(axis_service, set_A1_A6)
             ret_axis = axis_service_proxy(*axis_args)
             if ret_axis is True:
                 global CURRENT_STATE
                 CURRENT_STATE = global_var.STATE_MOVING_TO_PLACE if tipo == 'pick' else global_var.STATE_MOVING_TO_PREPICK
-                
+                        
+            pre_x = global_var.pos_x_kuka
+            pre_y = global_var.pos_y_kuka
+            
+            #Movimiento en cartesianas para centrar en la caja (por si se ha cambiado el radio)
+            if tipo == 'pick':
+                pre_x=obuses_poses.prepick_abs_x
+                pre_y=obuses_poses.prepick_abs_y
+            elif tipo =='place':
+                pre_x=obuses_poses.preplace_abs_x
+                pre_y=obuses_poses.preplace_abs_y
+            logger.debug("[Obus_manager] Calling abs_service with pre_x=%s, pre_y=%s", pre_x, pre_y)
+            abs_service = rospy.ServiceProxy(global_var.srv_name_move_abs_slow, set_CartesianEuler_pose)
+            abs_service(pre_x, pre_y, global_var.pos_z_kuka, global_var.pos_a_kuka, global_var.pos_b_kuka, global_var.pos_c_kuka)
+            self.parent.sleep_loop(2)
+            while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)    
 
         except rospy.ServiceException as e:
             logger.error("Service call failed: %s", e)
