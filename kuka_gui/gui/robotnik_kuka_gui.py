@@ -526,27 +526,27 @@ class KukaGUI(QWidget, WidgetsManagement):
         Callback ROS: actualiza el estado del voltaje y estado operativo de la herramienta.
         Muestra advertencia si hay fallo o habilitación.
         """
-        #global_flags.first_time_enabled
-        #motor1=data.motor_status[1]
-        #driveflags_1=numpy.array(map(int,motor1.driveflags))
-        #under_voltage_1=driveflags_1[12]
-        #if(under_voltage_1==1):
-        #    global_flags.under_voltage_tool=True
-        #    pixmap = QtGui.QPixmap(global_var.IMG_PATH+"/pinza_roja_peq2.png")
-        #    self.under_voltage_tool.setPixmap(pixmap)
-        #    #logger.info("undervoltage")
-        #else:
-        #    global_flags.under_voltage_tool=False
-        #    pixmap = QtGui.QPixmap(global_var.IMG_PATH+"/pinza_verde_peq2.png")
-        #    self.under_voltage_tool.setPixmap(pixmap)
-        #if(motor1.status=="OPERATION_ENABLED" and first_time_enabled):
-        #    #if(weight_read-weight_empty<-10):
-        #    global_flags.first_time_enabled=False
-        #    #logger.info("Warninng of weight should be here")				
-        #    ret = QMessageBox.information(self, "WARNING!", 'Tool enabled', QMessageBox.Ok)
-        #if(motor1.status=="FAULT"):
-        #    global_flags.first_time_enabled=True
-        #    #logger.info(first_time_enabled)
+        global_flags.first_time_enabled
+        motor1=data.motor_status[1]
+        driveflags_1=numpy.array(map(int,motor1.driveflags))
+        under_voltage_1=driveflags_1[12]
+        if(under_voltage_1==1):
+            global_flags.under_voltage_tool=True
+            pixmap = QtGui.QPixmap(global_var.IMG_PATH+"/pinza_roja_peq2.png")
+            self.under_voltage_tool.setPixmap(pixmap)
+            #logger.info("undervoltage")
+        else:
+            global_flags.under_voltage_tool=False
+            pixmap = QtGui.QPixmap(global_var.IMG_PATH+"/pinza_verde_peq2.png")
+            self.under_voltage_tool.setPixmap(pixmap)
+        if(motor1.status=="OPERATION_ENABLED" and global_flags.first_time_enabled):
+            #if(weight_read-weight_empty<-10):
+            global_flags.first_time_enabled=False
+            #logger.info("Warninng of weight should be here")				
+            ret = QMessageBox.information(self, "WARNING!", 'Tool enabled', QMessageBox.Ok)
+        if(motor1.status=="FAULT"):
+            global_flags.first_time_enabled=True
+            #logger.info(first_time_enabled)
             
 
     # Callback ROS

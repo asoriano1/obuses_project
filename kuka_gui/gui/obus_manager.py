@@ -261,6 +261,14 @@ class ObusManager:
             rel_service(0, 0, pre_z - global_var.pos_z_kuka, 0, 0, 0)
             self.parent.sleep_loop(2)
             while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)
+            
+            #Movimiento en cartesianas para centrar en la caja (por si se ha cambiado el radio)
+            #logger.debug("[Obus_manager] Calling rel_service with pre_z=%s, pos_z_kuka=%s", pre_z, global_var.pos_z_kuka)
+            #rel_service = rospy.ServiceProxy(global_var.srv_name_move_rel_slow, set_CartesianEuler_pose)
+            #rel_service(0, 0, pre_z - global_var.pos_z_kuka, 0, 0, 0)
+            #self.parent.sleep_loop(2)
+            #while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)
+            
 
             # Movimiento en ejes A1_A6
             axis_service_proxy = rospy.ServiceProxy(axis_service, set_A1_A6)
@@ -269,7 +277,6 @@ class ObusManager:
                 global CURRENT_STATE
                 CURRENT_STATE = global_var.STATE_MOVING_TO_PLACE if tipo == 'pick' else global_var.STATE_MOVING_TO_PREPICK
                 
-            #TODO: añadir movimiento en cartesianas para centrar en la caja (por si se ha cambiado el radio)
 
         except rospy.ServiceException as e:
             logger.error("Service call failed: %s", e)
