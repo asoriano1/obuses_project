@@ -189,6 +189,7 @@ class KukaGUI(QWidget, WidgetsManagement):
 
     def _init_ros_services(self):
         """Inicializa los servicios ROS requeridos para control de herramienta."""
+        self.sleep_loop(1)
         try:
             deadman_service = rospy.ServiceProxy(global_var.srv_deadman, SetBool)
             ret = deadman_service(True)
