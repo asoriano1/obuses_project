@@ -974,7 +974,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         if calibre["current_limit"]:
             limit_cont_current_service = rospy.ServiceProxy(global_var.srv_limit_cont_current, set_float_value)
             limit_peak_current_service = rospy.ServiceProxy(global_var.srv_limit_peak_current, set_float_value)
-            limit_value = [calibre["current_limit"]]
+            limit_value = calibre["current_limit"]
             try:
                 limit_cont_current_service(limit_value)
                 limit_peak_current_service(limit_value)

@@ -1,4 +1,5 @@
 # calibres_config.py
+import global_var
 
 CALIBRES = {
     0: {  # Sin gripper
@@ -19,7 +20,7 @@ CALIBRES = {
         "bg_pick_img": "BoxPick_3.png",
         "show_place": ["PlaceObusButton16_{}".format(i) for i in range(1, 17)],
         "show_pick": ["PickObusButton16_{}".format(i) for i in range(1, 21)],
-        "current_limit": "current_limit_1",
+        "current_limit": global_var.current_limit_1,
     },
     2: {  # 8 obuses
         "weight_min": 13,
@@ -29,7 +30,7 @@ CALIBRES = {
         "bg_pick_img": "BoxPick_3.png",
         "show_place": ["PlaceObusButton8_{}".format(i) for i in range(1, 9)],
         "show_pick": ["PickObusButton8_{}".format(i) for i in range(1, 15)],
-        "current_limit": "current_limit_2",
+        "current_limit": global_var.current_limit_2,
     },
     3: {  # 4 obuses
         "weight_min": 18,
@@ -39,7 +40,7 @@ CALIBRES = {
         "bg_pick_img": "BoxPick_3.png",
         "show_place": ["PlaceObusButton4_{}".format(i) for i in range(1, 5)],
         "show_pick": ["PickObusButton4_{}".format(i) for i in range(1, 6)],
-        "current_limit": "current_limit_3",
+        "current_limit": global_var.current_limit_3,
     },
     4: {  # 2 obuses
         "weight_min": 110,
@@ -49,7 +50,7 @@ CALIBRES = {
         "bg_pick_img": "BoxPick_3.png",
         "show_place": ["PlaceObusButton2_{}".format(i) for i in range(1, 3)],
         "show_pick": ["PickObusButton2_{}".format(i) for i in range(1, 5)],
-        "current_limit": "current_limit_4",
+        "current_limit": global_var.current_limit_4,
     },
 }
 
