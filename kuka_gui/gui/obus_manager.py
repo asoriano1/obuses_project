@@ -122,22 +122,22 @@ class ObusManager:
         start, end: índices a revisar
         """
         tipo = action.lower()
-        logger.debug("[remove_event_filters] action=%s, group=%s, rango=%d-%d", action, group, start, end)
+        #logger.debug("[remove_event_filters] action=%s, group=%s, rango=%d-%d", action, group, start, end)
         for i in range(start, end+1):
             key = (tipo, group, i)
             state = self.parent.state_dict.get(key, False)
-            logger.debug("[remove_event_filters] Revisando %s: estado=%s", key, state)
+            #logger.debug("[remove_event_filters] Revisando %s: estado=%s", key, state)
             if state:
                 # Ojo con el nombre del botón, debe ser coherente con cómo lo creaste
                 btn_name = '%sObusButton%d_%d' % (action, group, i)  # Ejemplo: PickObus16_1
                 btn = getattr(self.parent, btn_name, None)
                 if btn:
                     btn.removeEventFilter(self.parent)
-                    logger.debug("[remove_event_filters] Eliminado eventFilter en %s", btn_name)
-                else:
-                    logger.debug("[remove_event_filters] No se encontró el botón: %s", btn_name)
-            else:
-                logger.debug("[remove_event_filters] No se elimina eventFilter en %s (estado False)", str(key))
+                    #logger.debug("[remove_event_filters] Eliminado eventFilter en %s", btn_name)
+            #    else:
+            #        #logger.debug("[remove_event_filters] No se encontró el botón: %s", btn_name)
+            #else:
+            #    #logger.debug("[remove_event_filters] No se elimina eventFilter en %s (estado False)", str(key))
 
                     
     def reset_positions_place(self):
@@ -267,9 +267,10 @@ class ObusManager:
             axis_service_proxy = rospy.ServiceProxy(axis_service, set_A1_A6)
             ret_axis = axis_service_proxy(*axis_args)
             if ret_axis is True:
-                global CURRENT_STATE
-                CURRENT_STATE = global_var.STATE_MOVING_TO_PLACE if tipo == 'pick' else global_var.STATE_MOVING_TO_PREPICK
-                        
+                global_var.CURRENT_STATE = global_var.STATE_MOVING_TO_PLACE if tipo == 'pick' else global_var.STATE_MOVING_TO_PREPICK
+            
+            self.parent.sleep_loop(2)            
+            while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)
             pre_x = global_var.pos_x_kuka
             pre_y = global_var.pos_y_kuka
             

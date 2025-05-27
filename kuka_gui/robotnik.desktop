@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
 Name=KUKA GUI
-Terminal=false
-Exec=/home/robotnik/obuses_2025/src/obuses_project/kuka_gui/run_gui.sh
-Icon=/home/robotnik/obuses_2025/src/obuses_project/kuka_gui/gui/icon.ico
+Terminal=true
+Exec=/home/suippes/kuka_2025/src/obuses_project/kuka_gui/run_gui.sh
+Icon=/home/suippes/kuka_2025/src/obuses_project/kuka_gui/gui/icon.ico
 Categories=Utility;Application;
 Comment=Interfaz gráfica para control de robot KUKA
 

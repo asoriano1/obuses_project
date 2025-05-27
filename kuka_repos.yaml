@@ -2,7 +2,7 @@ repositories:
   itowa_safe_pad:
     type: git
     url: https://github.com/RobotnikAutomation/itowa_safe_pad
-    version: kuka_obuses_2025
+    version: kuka_obuses
   kuka_experimental:
     type: git
     url: https://github.com/asoriano1/kuka_experimental
@@ -19,6 +19,8 @@ repositories:
     type: git
     url: https://github.com/asoriano1/robotnik_trajectory_pad.git
     version: master-2025
+
+
 #  rqt_kuka:
 #    type: git
 #    url: https://github.com/asoriano1/rqt_kuka
