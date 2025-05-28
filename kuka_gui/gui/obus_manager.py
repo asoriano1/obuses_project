@@ -256,9 +256,9 @@ class ObusManager:
         logger.debug("[Obus_manager] Icon set successfully on %s", btn_name)
         # Llama a los servicios
         try:
-            # Subida lenta en Z (prepick/preplace)
+            # Subida rapida en Z (prepick/preplace)
             logger.debug("[Obus_manager] Calling rel_service with pre_z=%s, pos_z_kuka=%s", pre_z, global_var.pos_z_kuka)
-            rel_service = rospy.ServiceProxy(global_var.srv_name_move_rel_slow, set_CartesianEuler_pose)
+            rel_service = rospy.ServiceProxy(global_var.srv_name_move_rel_fast, set_CartesianEuler_pose)
             rel_service(0, 0, pre_z - global_var.pos_z_kuka, 0, 0, 0)
             self.parent.sleep_loop(2)
             while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)
@@ -282,10 +282,17 @@ class ObusManager:
                 pre_x=obuses_poses.preplace_abs_x
                 pre_y=obuses_poses.preplace_abs_y
             logger.debug("[Obus_manager] Calling abs_service with pre_x=%s, pre_y=%s", pre_x, pre_y)
-            abs_service = rospy.ServiceProxy(global_var.srv_name_move_abs_slow, set_CartesianEuler_pose)
+            abs_service = rospy.ServiceProxy(global_var.srv_name_move_abs_fast, set_CartesianEuler_pose)
             abs_service(pre_x, pre_y, global_var.pos_z_kuka, global_var.pos_a_kuka, global_var.pos_b_kuka, global_var.pos_c_kuka)
             self.parent.sleep_loop(2)
-            while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)    
+            while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)
+
+            # bajada rapida en Z (prepick/preplace)
+            logger.debug("[Obus_manager] Calling rel_service with pre_z=%s, pos_z_kuka=%s", pre_z, global_var.pos_z_kuka)
+            rel_service = rospy.ServiceProxy(global_var.srv_name_move_rel_fast, set_CartesianEuler_pose)
+            rel_service(0, 0, -275, 0, 0, 0)
+            self.parent.sleep_loop(2)
+            while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)
 
         except rospy.ServiceException as e:
             logger.error("Service call failed: %s", e)
