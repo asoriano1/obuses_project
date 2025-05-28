@@ -111,7 +111,7 @@ class KukaGUI(QWidget, WidgetsManagement):
 
         _run_and_log("rosrun topic_tools mux /kuka_pad/joy /kuka_pad/ps4_joy /kuka_pad/itowa_joy mux:=mux_joy __name:=joy_mux_node &", "Multiplexor de Joysticks")
         _run_and_log("rosrun topic_tools mux_select mux_joy /kuka_pad/ps4_joy", "Selección por defecto PS4")
-        _run_and_log("killall screen; sleep 1; screen -S bringup -d -m roslaunch kuka_robot_bringup kuka_robot_bringup_standalone.launch", "Lanzar bringup principal")
+        #_run_and_log("killall screen; sleep 1; screen -S bringup -d -m roslaunch kuka_robot_bringup kuka_robot_bringup_standalone.launch", "Lanzar bringup principal")
     
     def _connect_widgets(self):
         """Conecta los widgets de la UI con sus respectivas funciones."""
@@ -516,6 +516,10 @@ class KukaGUI(QWidget, WidgetsManagement):
             if global_flags.first_time_moving_kuka==False:
                 self.mode_label.setText("MANUAL")
                 self.activate_buttons()
+                # Desactivar botones de finger adjust y homing si no hay calibre
+                if global_var.finger_type == 0:
+                    self.Gripper_Homing_Button.setEnabled(False)
+                    self.Finger_Adjust_Button.setEnabled(False)
                 global_flags.first_time_moving_kuka = True
 
     
@@ -1092,3 +1096,8 @@ class KukaGUI(QWidget, WidgetsManagement):
         timer.timeout.connect(loop.quit)
         timer.start()
         loop.exec_()
+
+#close window
+    def closeEvent(self, event):
+        logger.info("Closing window")
+        event.accept()
