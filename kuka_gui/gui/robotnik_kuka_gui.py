@@ -693,14 +693,14 @@ class KukaGUI(QWidget, WidgetsManagement):
                 if ret == True:
                     global_flags.TOOL_HOMED=True
                 else:
-                    logger.info("ERROR: Homing service returns false!")
+                    logger.error("ERROR: Homing service returns false!")
                     #antes se hacía el TOOL_HOMED=True aunque fallase
                 #set current again
                 if global_var.finger_type == 0:
                     limit_cont_current_service(global_var.current_limit_0)
                     limit_peak_current_service(global_var.current_limit_0)
                 elif global_var.finger_type == 1:
-                    limit_cont_current_service()
+                    limit_cont_current_service(global_var.current_limit_1)
                     limit_peak_current_service(global_var.current_limit_1)
                 elif global_var.finger_type == 2:
                     limit_cont_current_service(global_var.current_limit_2)
@@ -726,8 +726,8 @@ class KukaGUI(QWidget, WidgetsManagement):
                 if global_var.finger_type == 0:
                     logger.debug("No gripper selected")
                 elif global_var.finger_type == 1:
-                    logger.debug("Set gripper to 100mm")
-                    tras_from_homing=0.2-0.1;               
+                    logger.debug("Set gripper to 150mm")
+                    tras_from_homing=0.2-0.05;               
                     ret=gripper_trasl_service(tras_from_homing,0,0,0)
                 elif global_var.finger_type == 2:
                     logger.debug("Set gripper to 140mm")
@@ -945,6 +945,8 @@ class KukaGUI(QWidget, WidgetsManagement):
         # Desactivar botones si no hay calibre
         if index == 0:
             self.desactivate_buttons()
+            #activar el combobox para poder volver a seleccionar
+            self.calibre_comboBox.setEnabled(True)
             self.weight_limited.setText("N/A")
             self.weight_label_expected_var.setText("[N/A, N/A]")
         else:
@@ -1013,7 +1015,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         logger.info("[aut_press_tool] Iniciando ciclo de cierre de herramienta")
 
         # Primer bucle: Cerrar la herramienta (ajustar ángulo)
-        while press_counter < 5:
+        while press_counter < 2:
             logger.debug("press_counter:: %s", press_counter)
             logger.debug("global_var.angle_tool:: %s", global_var.angle_tool)
             try:
@@ -1029,7 +1031,7 @@ class KukaGUI(QWidget, WidgetsManagement):
                 self.activate_buttons()
                 return
             self.sleep_loop(0.15)
-            if global_var.tool_current > global_var.current_limit_cont:
+            if global_var.tool_current > global_var.current_limit_picked:
                 press_counter += 1
             else:
                 press_counter = 0
@@ -1055,7 +1057,7 @@ class KukaGUI(QWidget, WidgetsManagement):
                 self.activate_buttons()
                 return
             self.sleep_loop(0.15)
-            if global_var.tool_current > global_var.current_limit_cont or abs(global_var.x_tool - old_pos_x) < 0.002:
+            if global_var.tool_current > global_var.current_limit_picked or abs(global_var.x_tool - old_pos_x) < 0.002:
                 press_counter += 1
             else:
                 press_counter = 0
