@@ -4061,7 +4061,7 @@
        <property name="geometry">
         <rect>
          <x>160</x>
-         <y>7</y>
+         <y>10</y>
          <width>121</width>
          <height>16</height>
         </rect>
@@ -4084,10 +4084,10 @@
       <widget class="QLabel" name="label_30">
        <property name="geometry">
         <rect>
-         <x>60</x>
+         <x>50</x>
          <y>7</y>
-         <width>91</width>
-         <height>16</height>
+         <width>101</width>
+         <height>20</height>
         </rect>
        </property>
        <property name="text">
@@ -4189,9 +4189,9 @@
       <property name="geometry">
        <rect>
         <x>-1</x>
-        <y>30</y>
+        <y>20</y>
         <width>331</width>
-        <height>121</height>
+        <height>131</height>
        </rect>
       </property>
       <property name="frameShape">
@@ -4203,8 +4203,8 @@
       <widget class="QPushButton" name="Reset_Robot_Button">
        <property name="geometry">
         <rect>
-         <x>100</x>
-         <y>30</y>
+         <x>99</x>
+         <y>34</y>
          <width>101</width>
          <height>22</height>
         </rect>
@@ -4216,10 +4216,10 @@
       <widget class="QLabel" name="label_29">
        <property name="geometry">
         <rect>
-         <x>50</x>
+         <x>49</x>
          <y>10</y>
-         <width>101</width>
-         <height>10</height>
+         <width>111</width>
+         <height>20</height>
         </rect>
        </property>
        <property name="text">
@@ -4229,8 +4229,8 @@
       <widget class="QLabel" name="robot_connection_label">
        <property name="geometry">
         <rect>
-         <x>150</x>
-         <y>5</y>
+         <x>162</x>
+         <y>12</y>
          <width>121</width>
          <height>20</height>
         </rect>
@@ -4364,7 +4364,7 @@
       <widget class="QLabel" name="label_36">
        <property name="geometry">
         <rect>
-         <x>190</x>
+         <x>160</x>
          <y>60</y>
          <width>21</width>
          <height>16</height>
@@ -4377,7 +4377,7 @@
       <widget class="QLabel" name="label_37">
        <property name="geometry">
         <rect>
-         <x>190</x>
+         <x>160</x>
          <y>80</y>
          <width>21</width>
          <height>16</height>
@@ -4390,7 +4390,7 @@
       <widget class="QLabel" name="label_38">
        <property name="geometry">
         <rect>
-         <x>190</x>
+         <x>160</x>
          <y>100</y>
          <width>21</width>
          <height>16</height>
@@ -4403,7 +4403,7 @@
       <widget class="QLabel" name="robot_pose_a_label">
        <property name="geometry">
         <rect>
-         <x>210</x>
+         <x>180</x>
          <y>60</y>
          <width>61</width>
          <height>16</height>
@@ -4427,7 +4427,7 @@
       <widget class="QLabel" name="robot_pose_b_label">
        <property name="geometry">
         <rect>
-         <x>210</x>
+         <x>180</x>
          <y>80</y>
          <width>61</width>
          <height>16</height>
@@ -4451,7 +4451,7 @@
       <widget class="QLabel" name="robot_pose_c_label">
        <property name="geometry">
         <rect>
-         <x>210</x>
+         <x>180</x>
          <y>100</y>
          <width>61</width>
          <height>16</height>
@@ -4491,8 +4491,8 @@
       <widget class="QLabel" name="control_mode_label">
        <property name="geometry">
         <rect>
-         <x>180</x>
-         <y>11</y>
+         <x>172</x>
+         <y>12</y>
          <width>111</width>
          <height>20</height>
         </rect>
@@ -4515,9 +4515,9 @@
       <widget class="QLabel" name="label_24">
        <property name="geometry">
         <rect>
-         <x>60</x>
+         <x>40</x>
          <y>10</y>
-         <width>111</width>
+         <width>131</width>
          <height>20</height>
         </rect>
        </property>
