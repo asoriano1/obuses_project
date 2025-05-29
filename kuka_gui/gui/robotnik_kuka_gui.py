@@ -44,9 +44,9 @@ import obuses_poses
 from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QWidget, QMessageBox
 from std_msgs.msg import Bool, Float64, Float32
-from std_srvs.srv import SetBool
+from std_srvs.srv import SetBool, Trigger
 from sensor_msgs.msg import JointState
-from robotnik_msgs.srv import home, set_odometry, set_CartesianEuler_pose, set_digital_output, set_float_value
+from robotnik_msgs.srv import set_odometry, set_CartesianEuler_pose, set_digital_output, set_float_value
 from robotnik_msgs.msg import Cartesian_Euler_pose, RobotnikMotorsStatus, MotorStatus, inputs_outputs
 from geometry_msgs.msg import Pose, Point, Quaternion
 from kuka_rsi_cartesian_hw_interface.srv import set_A1_A6
@@ -72,6 +72,7 @@ class KukaGUI(QWidget, WidgetsManagement):
     do_callback_robot_moving = QtCore.pyqtSignal(Bool)
     do_callback_door_state = QtCore.pyqtSignal(inputs_outputs)
     do_callback_tool_moving = QtCore.pyqtSignal(Bool)
+    do_callback_tool_homed = QtCore.pyqtSignal(Bool)
     
     def __init__(self, parent=None):
         """
@@ -118,7 +119,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         """Conecta los widgets de la UI con sus respectivas funciones."""
         self.calibre_comboBox.currentIndexChanged.connect(self.calibre_selected)
         self.joy_comboBox.currentIndexChanged.connect(self.joy_selected)
-        self.robot_connection_label.setText("NOT CONNECTED")
+        self.robot_connection_label.setText("OFFLINE")
 
         # Botones principales
         self.Finger_Adjust_Button.pressed.connect(self.press_finger_adjust_button)
@@ -138,7 +139,12 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.undoPositions_Button_pick.pressed.connect(self.press_undo_positions_button_pick)
         self.undoPositions_Button_place.pressed.connect(self.press_undo_positions_button_place)
         self.press_Button.pressed.connect(self.aut_press_tool)
-        self.tool_status_label.setStyleSheet("color: black;")
+        self.tool_connection_label.setStyleSheet("color: black;")
+        self.tool_control_label.setStyleSheet("color: black;")
+        self.tool_mov_label.setStyleSheet("color: black;")
+        self.robot_connection_label.setStyleSheet("color: black;")
+        self.robot_control_label.setStyleSheet("color: black;")
+        self.robot_mov_label.setStyleSheet("color: black;")
         self.tool_pose_x_label.setStyleSheet("color: black;")
         self.tool_pose_a_label.setStyleSheet("color: black;")
         self.robot_pose_x_label.setStyleSheet("color: black;")
@@ -201,6 +207,10 @@ class KukaGUI(QWidget, WidgetsManagement):
         # Estado de la puerta
         self.sub_door_status = rospy.Subscriber(global_var.topic_door_state, inputs_outputs, self.callback_door_state)
         self.do_callback_door_state.connect(self.callback_door_state_signal)
+        # Estado del homming de la tool
+        self.sub_tool_homed = rospy.Subscriber(global_var.topic_tool_homed, Bool, self.callback_tool_homed)
+        self.do_callback_tool_homed.connect(self.callback_tool_homed_signal)
+        
 
     def _init_ros_services(self):
         """Inicializa los servicios ROS requeridos para control de herramienta."""
@@ -516,12 +526,19 @@ class KukaGUI(QWidget, WidgetsManagement):
     def callback_tool_moving_signal(self, data):
         """
         Callback ROS: se ejecuta cuando el tool cambia su estado de movimiento.
-        Actualiza el modo (AUTOMATIC/MANUAL) y activa/desactiva botones.
+        Actualiza el modo (MOVING/IDLE) y activa/desactiva botones.
         """
         if data.data == True :
-            self.tool_status_label.setText("Moving")                
+            if global_flags.TOOL_AUT:
+                self.tool_control_label.setText("AUTO")
+            self.tool_mov_label.setText(" MOVING")
+            self.tool_moving = True
         else:
-            self.tool_status_label.setText("Stopped")
+            if global_flags.TOOL_AUT:
+                self.tool_control_label.setText("MANUAL")
+            self.tool_mov_label.setText("⏸️ IDLE")
+            self.tool_moving = False
+            global_flags.TOOL_AUT=False
 
 
     # Callback ROS
@@ -535,19 +552,22 @@ class KukaGUI(QWidget, WidgetsManagement):
         Actualiza el modo (AUTOMATIC/MANUAL) y activa/desactiva botones.
         """
         #logger.info("CB:moving_received:"),data.data
+        
         if data.data == True :
+            self.robot_mov_label.setText("MOVING")
             if not global_flags.KUKA_AUT:
                 global_flags.KUKA_AUT=True
             if global_flags.first_time_moving_kuka:
-                    self.control_mode_label.setText("AUTOMATIC")
+                    self.robot_connection_label.setText("AUTO")
                     self.desactivate_buttons()
                     global_flags.first_time_moving_kuka = False
                             
         else:
+            self.robot_mov_label.setText("⏸️ IDLE")
             if global_flags.KUKA_AUT:    
                 global_flags.KUKA_AUT=False
             if global_flags.first_time_moving_kuka==False:
-                self.control_mode_label.setText("MANUAL")
+                self.robot_connection_label.setText("🖐️ MANUAL")
                 self.activate_buttons()
                 # Desactivar botones de finger adjust y homing si no hay calibre
                 if global_var.finger_type == 0:
@@ -555,7 +575,21 @@ class KukaGUI(QWidget, WidgetsManagement):
                     self.Finger_Adjust_Button.setEnabled(False)
                     self.press_Button.setEnabled(False)
                 global_flags.first_time_moving_kuka = True
-
+                
+    # Callback ROS
+    def callback_tool_homed(self,data):        
+        self.do_callback_tool_homed.emit(data)
+    
+    # Callback signal
+    def callback_tool_homed_signal(self, data):
+        """
+        Callback ROS: tool homed
+        """
+        #logger.info("CB:moving_received:"),data.data
+        if data.data and not global_flags.TOOL_HOMED:
+            self.Finger_Adjust_Button.setEnabled(True)
+        global_flags.TOOL_HOMED=data.data
+        
     
             
     # Callback ROS: gestiona eventos del topic o servicio relacionado.
@@ -614,16 +648,7 @@ class KukaGUI(QWidget, WidgetsManagement):
     def callback_robot_pose(self, data):
         if not global_flags.rob_connected :
              global_flags.rob_connected = True
-             self.robot_connection_label.setText("NOT CONNECTED")
-             #self.robot_connection_label.setStyleSheet("color: red;")
-             self.robot_pose_x_label.setText("N/A")
-             self.robot_pose_y_label.setText("N/A")
-             self.robot_pose_z_label.setText("N/A")
-             self.robot_pose_a_label.setText("N/A")
-             self.robot_pose_b_label.setText("N/A")
-             self.robot_pose_c_label.setText("N/A")
-             return
-        self.robot_connection_label.setText("CONNECTED")
+        self.robot_connection_label.setText("ONLINE")
         #self.robot_connection_label.setStyleSheet("color: green;")
         self.robot_pose_x_label.setText("%.2f" % data.x)
         self.robot_pose_y_label.setText("%.2f" % data.y)
@@ -737,19 +762,17 @@ class KukaGUI(QWidget, WidgetsManagement):
             try:
                 limit_cont_current_service=rospy.ServiceProxy(global_var.srv_limit_cont_current, set_float_value)
                 limit_peak_current_service=rospy.ServiceProxy(global_var.srv_limit_peak_current, set_float_value)
-                limit_cont_current_service(global_var.current_limit_0)
-                limit_peak_current_service(global_var.current_limit_0)
+                #limit_cont_current_service(global_var.current_limit_0)
+                #limit_peak_current_service(global_var.current_limit_0)
                 #gripper_move_service = rospy.ServiceProxy(global_var.srv_finger_set_pose,set_odometry)
-                homing_service = rospy.ServiceProxy(global_var.srv_tool_homing, home)           
+                homing_service = rospy.ServiceProxy(global_var.srv_tool_homing, Trigger)           
                 ret = homing_service()
+                self.tool_control_label.setText("AUTO")
+                global_flags.TOOL_AUT = True
                 #TOOL_HOMED=True 
                 #weight_empty=weight_read
                 #gripper_move_service(0.02,0,0,-0.15)
-                if ret == True:
-                    global_flags.TOOL_HOMED=True
-                else:
-                    logger.error("ERROR: Homing service returns false!")
-                    #antes se hacía el TOOL_HOMED=True aunque fallase
+                #while global_flags.TOOL_HOMED: self.sleep_loop(0.3)
                 #set current again
                 if global_var.finger_type == 0:
                     limit_cont_current_service(global_var.current_limit_0)
@@ -769,6 +792,8 @@ class KukaGUI(QWidget, WidgetsManagement):
             except rospy.ServiceException as e:
                 logger.error("Service call failed: %s", e)
                 QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+            self.sleep_loop(1)
+            
             
 # Gestión de acción de botón: 'Finger adjust'.
     def press_finger_adjust_button(self):
@@ -799,6 +824,9 @@ class KukaGUI(QWidget, WidgetsManagement):
             except rospy.ServiceException as e:
                 logger.error("Service call failed: %s", e)
                 QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                
+            self.tool_control_label.setText("AUTO")
+            global_flags.TOOL_AUT = True
             
 # Gestión de acción de botón: 'Led on'.
     def press_led_on_button(self):
@@ -909,33 +937,33 @@ class KukaGUI(QWidget, WidgetsManagement):
             return
 
         #self.origin_pick_quad = 0 #SEGURO? por qué hacer homing es quitar la restricción de los botones de places?
-        logger.info("[press_homming_button] Iniciando homming...")
+        logger.debug("[press_homming_button] Iniciando ir a la mesa...")
 
         try:
-            logger.info("[press_homming_button] Moviendo en Z de forma relativa (pre-homing).")
+            logger.debug("[press_homming_button] Moviendo en Z de forma relativa (pre-homing).")
             homming_rel_service = rospy.ServiceProxy(global_var.srv_name_move_rel_slow, set_CartesianEuler_pose)
             ret_rel = homming_rel_service(0, 0, obuses_poses.pose_z_safe - global_var.pos_z_kuka, 0, 0, 0)
-            logger.info("[press_homming_button] Movimiento relativo Z ejecutado, esperando...")
+            logger.debug("[press_homming_button] Movimiento relativo Z ejecutado, esperando...")
             self.sleep_loop(2)
             while global_flags.KUKA_AUT:
-                logger.info("[press_homming_button] Esperando a que global_flags.KUKA_AUT sea False...")
+                logger.debug("[press_homming_button] Esperando a que global_flags.KUKA_AUT sea False...")
                 self.sleep_loop(0.3)
 
-            logger.info("[press_homming_button] Llamando a home_A1_A6_service...")
+            logger.debug("[press_homming_button] Llamando a home_A1_A6_service...")
             home_A1_A6_service = rospy.ServiceProxy(global_var.srv_move_A1_A6, set_A1_A6)
             ret_a1a6 = home_A1_A6_service(0.0, 177)
-            logger.info("[press_homming_button] Movimiento home_A1_A6 ejecutado, esperando...")
+            logger.debug("[press_homming_button] Movimiento home_A1_A6 ejecutado, esperando...")
             self.sleep_loop(2)
-            logger.info("[press_homming_button] Esperando a que global_flags.KUKA_AUT sea False...")
+            logger.debug("[press_homming_button] Esperando a que global_flags.KUKA_AUT sea False...")
             while global_flags.KUKA_AUT:                
                 self.sleep_loop(0.3)
 
-            logger.info("[press_homming_button] Moviendo a posición absoluta en la mesa.")
+            logger.debug("[press_homming_button] Moviendo a posición absoluta en la mesa.")
             placed_abs_service = rospy.ServiceProxy(global_var.srv_name_move_abs_slow, set_CartesianEuler_pose)
             ret_abs = placed_abs_service(obuses_poses.table_pose_x, obuses_poses.table_pose_y, obuses_poses.table_pose_z, obuses_poses.table_pose_a, obuses_poses.table_pose_b, obuses_poses.table_pose_c)
             if ret_abs == True:
                 global_var.CURRENT_STATE = global_var.STATE_MOVING_TO_PLACE
-                logger.info("[press_homming_button] Homming completado y estado actualizado.")
+                logger.debug("[press_homming_button] Homming completado y estado actualizado.")
             else:
                 logger.warning("[press_homming_button] Advertencia: La llamada a placed_abs_service no devolvió True.")
         except rospy.ServiceException as e:
@@ -993,7 +1021,7 @@ class KukaGUI(QWidget, WidgetsManagement):
 # Gestión de cambio de calibre (selección de tipo de gripper/obus).
     def calibre_selected(self, index):
 
-        logger.debug('Selected:: %s', index)
+        logger.debug('Selected:: %s. TOOL_HOMED:%s', index, global_flags.TOOL_HOMED)
         global_var.finger_type = index
         calibre = CALIBRES.get(index, CALIBRES[0])
 
@@ -1006,6 +1034,9 @@ class KukaGUI(QWidget, WidgetsManagement):
             self.weight_label_expected_var.setText("[N/A, N/A]")
         else:
             self.activate_buttons()
+            
+        if not global_flags.TOOL_HOMED:
+            self.Finger_Adjust_Button.setEnabled(False)
 
         # Establecer rangos de peso esperados
         global_var.weight_expected_min = calibre["weight_min"] or 0
@@ -1127,7 +1158,7 @@ class KukaGUI(QWidget, WidgetsManagement):
 # Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_tool_state(self, data):
         #self.tool_status_label.setStyleSheet("color: green;")
-        self.tool_status_label.setText("CONNECTED")
+        self.tool_connection_label.setText("ONLINE")
         global_var.x_tool = data.position[2]
         global_var.angle_tool = data.position[3]
         self.tool_pose_x_label.setText("%.2f" % (1000*global_var.x_tool))
@@ -1139,8 +1170,8 @@ class KukaGUI(QWidget, WidgetsManagement):
         command_string = "killall screen; sleep 1; screen -S bringup -d -m roslaunch kuka_robot_bringup kuka_robot_bringup_standalone.launch"
         #command_string = "rosnode kill /kuka_robot/kuka_cartesian_hardware_interface; sleep 1; ROS_NAMESPACE=kuka_robot roslaunch kuka_rsi_cartesian_hw_interface test_hardware_interface.launch &"
         os.system(command_string)
-        self.control_mode_label.setText("NOT CONNECTED")
-        #self.control_mode_label.setStyleSheet("color: green;")
+        self.robot_connection_label.setText("OFFLINE")
+        #self.robot_connection_label.setStyleSheet("color: green;")
         global_flags.rob_connected = False
            
 # Función: Sleep loop.

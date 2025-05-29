@@ -4345,7 +4345,7 @@
         <string>Control:</string>
        </property>
       </widget>
-      <widget class="QLabel" name="robot_mode_label">
+      <widget class="QLabel" name="robot_control_label">
        <property name="geometry">
         <rect>
          <x>80</x>
@@ -4382,7 +4382,7 @@
         <string>Movement:</string>
        </property>
       </widget>
-      <widget class="QLabel" name="robot_control_label_2">
+      <widget class="QLabel" name="robot_mov_label">
        <property name="geometry">
         <rect>
          <x>80</x>
@@ -4614,7 +4614,7 @@
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;❌ OFFLINE&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
-      <widget class="QLabel" name="tool_mode_label">
+      <widget class="QLabel" name="tool_control_label">
        <property name="geometry">
         <rect>
          <x>80</x>
@@ -4638,7 +4638,7 @@
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;🖐️ MANUAL&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
-      <widget class="QLabel" name="tool_control_label">
+      <widget class="QLabel" name="tool_mov_label">
        <property name="geometry">
         <rect>
          <x>81</x>

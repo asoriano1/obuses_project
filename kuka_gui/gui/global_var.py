@@ -42,7 +42,7 @@ srv_name_move_abs_fast='/kuka_robot/setKukaAbsFast'
 srv_name_move_abs_slow='/kuka_robot/setKukaAbs'
 srv_name_move_rel_fast='/kuka_robot/setKukaRelFast'
 srv_name_move_rel_slow='/kuka_robot/setKukaRel'
-srv_tool_homing='/kuka_tool/robotnik_base_hw/home'
+srv_tool_homing='/kuka_tool_finger_node/home'
 srv_finger_set_pose='/kuka_tool_finger_node/set_odometry' #robotnik_msgs.set.odometry
 srv_digital_io='/kuka_tool/robotnik_base_hw/set_digital_output'
 srv_limit_cont_current='/kuka_tool/robotnik_base_hw/set_continuous_current_limit'
@@ -63,6 +63,7 @@ topic_motor_status='/kuka_tool/robotnik_base_hw/status'
 topic_tool_state='/kuka_tool/joint_states'
 topic_door_state='/phidgets_vint_hub/io'
 topic_tool_moving='/kuka_tool/finger_moving'
+topic_tool_homed='/kuka_tool/finger_homed'
 
 #CAJA GRIS
 Prepick_Pose_z=1542.38

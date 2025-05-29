@@ -8,6 +8,8 @@ rob_connected = False
 under_voltage_tool=False
 first_time_enabled=False
 TOOL_HOMED=False
+TOOL_AUT=False
+tool_moving=False
 KUKA_AUT=False
 angle_mode=True
 
