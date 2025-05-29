@@ -4057,11 +4057,11 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <widget class="QLabel" name="tool_status_label">
+      <widget class="QLabel" name="mode_label_2">
        <property name="geometry">
         <rect>
-         <x>157</x>
-         <y>8</y>
+         <x>160</x>
+         <y>7</y>
          <width>121</width>
          <height>16</height>
         </rect>
@@ -4078,16 +4078,16 @@
         <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; color:#ff0000;&quot;&gt;NOT RUNNING&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;NOT RUNNING&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_30">
        <property name="geometry">
         <rect>
-         <x>50</x>
+         <x>60</x>
          <y>7</y>
-         <width>101</width>
-         <height>20</height>
+         <width>91</width>
+         <height>16</height>
         </rect>
        </property>
        <property name="text">
@@ -4126,14 +4126,14 @@
       <widget class="QLabel" name="label_35">
        <property name="geometry">
         <rect>
-         <x>100</x>
-         <y>77</y>
-         <width>51</width>
-         <height>20</height>
+         <x>130</x>
+         <y>80</y>
+         <width>21</width>
+         <height>16</height>
         </rect>
        </property>
        <property name="text">
-        <string>Angle:</string>
+        <string>A:</string>
        </property>
       </widget>
       <widget class="QLabel" name="tool_pose_x_label">
@@ -4189,9 +4189,9 @@
       <property name="geometry">
        <rect>
         <x>-1</x>
-        <y>20</y>
+        <y>30</y>
         <width>331</width>
-        <height>131</height>
+        <height>121</height>
        </rect>
       </property>
       <property name="frameShape">
@@ -4203,8 +4203,8 @@
       <widget class="QPushButton" name="Reset_Robot_Button">
        <property name="geometry">
         <rect>
-         <x>99</x>
-         <y>34</y>
+         <x>100</x>
+         <y>30</y>
          <width>101</width>
          <height>22</height>
         </rect>
@@ -4216,10 +4216,10 @@
       <widget class="QLabel" name="label_29">
        <property name="geometry">
         <rect>
-         <x>49</x>
+         <x>50</x>
          <y>10</y>
-         <width>111</width>
-         <height>20</height>
+         <width>101</width>
+         <height>10</height>
         </rect>
        </property>
        <property name="text">
@@ -4229,8 +4229,8 @@
       <widget class="QLabel" name="robot_connection_label">
        <property name="geometry">
         <rect>
-         <x>162</x>
-         <y>12</y>
+         <x>150</x>
+         <y>5</y>
          <width>121</width>
          <height>20</height>
         </rect>
@@ -4247,7 +4247,7 @@
         <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; color:#ff0000;&quot;&gt;NOT CONECTED&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;NOT CONECTED&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_31">
@@ -4364,7 +4364,7 @@
       <widget class="QLabel" name="label_36">
        <property name="geometry">
         <rect>
-         <x>160</x>
+         <x>190</x>
          <y>60</y>
          <width>21</width>
          <height>16</height>
@@ -4377,7 +4377,7 @@
       <widget class="QLabel" name="label_37">
        <property name="geometry">
         <rect>
-         <x>160</x>
+         <x>190</x>
          <y>80</y>
          <width>21</width>
          <height>16</height>
@@ -4390,7 +4390,7 @@
       <widget class="QLabel" name="label_38">
        <property name="geometry">
         <rect>
-         <x>160</x>
+         <x>190</x>
          <y>100</y>
          <width>21</width>
          <height>16</height>
@@ -4403,7 +4403,7 @@
       <widget class="QLabel" name="robot_pose_a_label">
        <property name="geometry">
         <rect>
-         <x>180</x>
+         <x>210</x>
          <y>60</y>
          <width>61</width>
          <height>16</height>
@@ -4427,7 +4427,7 @@
       <widget class="QLabel" name="robot_pose_b_label">
        <property name="geometry">
         <rect>
-         <x>180</x>
+         <x>210</x>
          <y>80</y>
          <width>61</width>
          <height>16</height>
@@ -4451,7 +4451,7 @@
       <widget class="QLabel" name="robot_pose_c_label">
        <property name="geometry">
         <rect>
-         <x>180</x>
+         <x>210</x>
          <y>100</y>
          <width>61</width>
          <height>16</height>
@@ -4491,7 +4491,7 @@
       <widget class="QLabel" name="control_mode_label">
        <property name="geometry">
         <rect>
-         <x>171</x>
+         <x>180</x>
          <y>11</y>
          <width>111</width>
          <height>20</height>
@@ -4509,15 +4509,15 @@
         <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;MANUAL&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;MANUAL&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_24">
        <property name="geometry">
         <rect>
-         <x>40</x>
+         <x>60</x>
          <y>10</y>
-         <width>131</width>
+         <width>111</width>
          <height>20</height>
         </rect>
        </property>
@@ -4637,7 +4637,7 @@
        <rect>
         <x>30</x>
         <y>170</y>
-        <width>231</width>
+        <width>191</width>
         <height>20</height>
        </rect>
       </property>
@@ -4653,7 +4653,7 @@
        <rect>
         <x>30</x>
         <y>140</y>
-        <width>181</width>
+        <width>151</width>
         <height>21</height>
        </rect>
       </property>
@@ -4669,7 +4669,7 @@
        <rect>
         <x>30</x>
         <y>110</y>
-        <width>161</width>
+        <width>131</width>
         <height>23</height>
        </rect>
       </property>

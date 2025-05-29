@@ -4033,7 +4033,7 @@
       <property name="geometry">
        <rect>
         <x>100</x>
-        <y>0</y>
+        <y>5</y>
         <width>131</width>
         <height>21</height>
        </rect>
@@ -4046,9 +4046,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>150</y>
+        <y>270</y>
         <width>331</width>
-        <height>101</height>
+        <height>41</height>
        </rect>
       </property>
       <property name="frameShape">
@@ -4057,141 +4057,14 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <widget class="QLabel" name="tool_status_label">
-       <property name="geometry">
-        <rect>
-         <x>157</x>
-         <y>8</y>
-         <width>121</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="autoFillBackground">
-        <bool>true</bool>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">color: rgb(0, 170, 0);</string>
-       </property>
-       <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; color:#ff0000;&quot;&gt;NOT RUNNING&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_30">
-       <property name="geometry">
-        <rect>
-         <x>50</x>
-         <y>7</y>
-         <width>101</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>TOOL STATUS:</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="Reset_Ext_Button">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="geometry">
-        <rect>
-         <x>100</x>
-         <y>30</y>
-         <width>101</width>
-         <height>22</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>RESET TOOL</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_34">
-       <property name="geometry">
-        <rect>
-         <x>130</x>
-         <y>60</y>
-         <width>21</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>X:</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_35">
-       <property name="geometry">
-        <rect>
-         <x>100</x>
-         <y>77</y>
-         <width>51</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Angle:</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="tool_pose_x_label">
-       <property name="geometry">
-        <rect>
-         <x>150</x>
-         <y>60</y>
-         <width>61</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="autoFillBackground">
-        <bool>true</bool>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">color: rgb(0, 170, 0);</string>
-       </property>
-       <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="tool_pose_a_label">
-       <property name="geometry">
-        <rect>
-         <x>150</x>
-         <y>80</y>
-         <width>61</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="autoFillBackground">
-        <bool>true</bool>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">color: rgb(0, 170, 0);</string>
-       </property>
-       <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-      </widget>
      </widget>
      <widget class="QFrame" name="frame_robot_status">
       <property name="geometry">
        <rect>
         <x>-1</x>
-        <y>20</y>
-        <width>331</width>
-        <height>131</height>
+        <y>30</y>
+        <width>161</width>
+        <height>211</height>
        </rect>
       </property>
       <property name="frameShape">
@@ -4200,44 +4073,31 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <widget class="QPushButton" name="Reset_Robot_Button">
-       <property name="geometry">
-        <rect>
-         <x>99</x>
-         <y>34</y>
-         <width>101</width>
-         <height>22</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>CONNECT</string>
-       </property>
-      </widget>
       <widget class="QLabel" name="label_29">
        <property name="geometry">
         <rect>
-         <x>49</x>
-         <y>10</y>
-         <width>111</width>
-         <height>20</height>
+         <x>10</x>
+         <y>30</y>
+         <width>71</width>
+         <height>16</height>
         </rect>
        </property>
        <property name="text">
-        <string>ROBOT STATUS:</string>
+        <string>Conection:</string>
        </property>
       </widget>
       <widget class="QLabel" name="robot_connection_label">
        <property name="geometry">
         <rect>
-         <x>162</x>
-         <y>12</y>
-         <width>121</width>
+         <x>80</x>
+         <y>29</y>
+         <width>71</width>
          <height>20</height>
         </rect>
        </property>
        <property name="font">
         <font>
-         <pointsize>10</pointsize>
+         <pointsize>9</pointsize>
         </font>
        </property>
        <property name="autoFillBackground">
@@ -4247,14 +4107,14 @@
         <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; color:#ff0000;&quot;&gt;NOT CONECTED&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;❌ OFFLINE&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_31">
        <property name="geometry">
         <rect>
-         <x>80</x>
-         <y>60</y>
+         <x>10</x>
+         <y>110</y>
          <width>21</width>
          <height>16</height>
         </rect>
@@ -4266,8 +4126,8 @@
       <widget class="QLabel" name="label_32">
        <property name="geometry">
         <rect>
-         <x>80</x>
-         <y>80</y>
+         <x>10</x>
+         <y>130</y>
          <width>21</width>
          <height>16</height>
         </rect>
@@ -4279,8 +4139,8 @@
       <widget class="QLabel" name="label_33">
        <property name="geometry">
         <rect>
-         <x>80</x>
-         <y>100</y>
+         <x>10</x>
+         <y>150</y>
          <width>21</width>
          <height>16</height>
         </rect>
@@ -4292,9 +4152,9 @@
       <widget class="QLabel" name="robot_pose_x_label">
        <property name="geometry">
         <rect>
-         <x>100</x>
-         <y>60</y>
-         <width>61</width>
+         <x>30</x>
+         <y>110</y>
+         <width>51</width>
          <height>16</height>
         </rect>
        </property>
@@ -4310,15 +4170,15 @@
         <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;right&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLabel" name="robot_pose_y_label">
        <property name="geometry">
         <rect>
-         <x>100</x>
-         <y>80</y>
-         <width>61</width>
+         <x>30</x>
+         <y>130</y>
+         <width>51</width>
          <height>16</height>
         </rect>
        </property>
@@ -4334,15 +4194,15 @@
         <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;right&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLabel" name="robot_pose_z_label">
        <property name="geometry">
         <rect>
-         <x>100</x>
-         <y>100</y>
-         <width>61</width>
+         <x>30</x>
+         <y>150</y>
+         <width>51</width>
          <height>16</height>
         </rect>
        </property>
@@ -4358,14 +4218,14 @@
         <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;right&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_36">
        <property name="geometry">
         <rect>
-         <x>160</x>
-         <y>60</y>
+         <x>90</x>
+         <y>110</y>
          <width>21</width>
          <height>16</height>
         </rect>
@@ -4377,8 +4237,8 @@
       <widget class="QLabel" name="label_37">
        <property name="geometry">
         <rect>
-         <x>160</x>
-         <y>80</y>
+         <x>90</x>
+         <y>130</y>
          <width>21</width>
          <height>16</height>
         </rect>
@@ -4390,8 +4250,8 @@
       <widget class="QLabel" name="label_38">
        <property name="geometry">
         <rect>
-         <x>160</x>
-         <y>100</y>
+         <x>90</x>
+         <y>150</y>
          <width>21</width>
          <height>16</height>
         </rect>
@@ -4403,9 +4263,9 @@
       <widget class="QLabel" name="robot_pose_a_label">
        <property name="geometry">
         <rect>
-         <x>180</x>
-         <y>60</y>
-         <width>61</width>
+         <x>110</x>
+         <y>110</y>
+         <width>41</width>
          <height>16</height>
         </rect>
        </property>
@@ -4421,15 +4281,15 @@
         <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;right&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLabel" name="robot_pose_b_label">
        <property name="geometry">
         <rect>
-         <x>180</x>
-         <y>80</y>
-         <width>61</width>
+         <x>110</x>
+         <y>130</y>
+         <width>41</width>
          <height>16</height>
         </rect>
        </property>
@@ -4445,15 +4305,15 @@
         <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;right&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLabel" name="robot_pose_c_label">
        <property name="geometry">
         <rect>
-         <x>180</x>
-         <y>100</y>
-         <width>61</width>
+         <x>110</x>
+         <y>150</y>
+         <width>41</width>
          <height>16</height>
         </rect>
        </property>
@@ -4469,17 +4329,117 @@
         <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;right&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_46">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>55</y>
+         <width>71</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Control:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="robot_mode_label">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>54</y>
+         <width>71</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+        </font>
+       </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(0, 0, 0);</string>
+       </property>
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;🖐️ MANUAL&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_47">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>80</y>
+         <width>71</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Movement:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="robot_control_label_2">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>77</y>
+         <width>71</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+        </font>
+       </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(0, 0, 0);</string>
+       </property>
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;⏸️ IDLE&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_48">
+       <property name="geometry">
+        <rect>
+         <x>58</x>
+         <y>8</y>
+         <width>51</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ROBOT</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="Reset_Robot_Button">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>180</y>
+         <width>101</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>CONNECT</string>
        </property>
       </widget>
      </widget>
-     <widget class="QFrame" name="frame_2">
+     <widget class="QFrame" name="frame_3">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>250</y>
-        <width>331</width>
-        <height>61</height>
+        <x>160</x>
+        <y>30</y>
+        <width>171</width>
+        <height>211</height>
        </rect>
       </property>
       <property name="frameShape">
@@ -4488,13 +4448,39 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <widget class="QLabel" name="control_mode_label">
+      <widget class="QLabel" name="label_35">
        <property name="geometry">
         <rect>
-         <x>171</x>
-         <y>11</y>
-         <width>111</width>
+         <x>34</x>
+         <y>138</y>
+         <width>41</width>
          <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Angle:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_34">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>120</y>
+         <width>21</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>X:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tool_pose_a_label">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>140</y>
+         <width>41</width>
+         <height>16</height>
         </rect>
        </property>
        <property name="font">
@@ -4509,20 +4495,171 @@
         <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;MANUAL&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;right&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_24">
+      <widget class="QLabel" name="tool_pose_x_label">
        <property name="geometry">
         <rect>
-         <x>40</x>
+         <x>80</x>
+         <y>120</y>
+         <width>41</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(0, 170, 0);</string>
+       </property>
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;right&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_30">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
          <y>10</y>
-         <width>131</width>
-         <height>20</height>
+         <width>41</width>
+         <height>16</height>
         </rect>
        </property>
        <property name="text">
-        <string>CONTROL ROBOT:</string>
+        <string>TOOL</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="Reset_Ext_Button">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>180</y>
+         <width>101</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>RESET TOOL</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_49">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>71</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Conection:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_50">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>55</y>
+         <width>71</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Control:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_51">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>79</y>
+         <width>71</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Movement:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tool_connection_label">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>30</y>
+         <width>71</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+        </font>
+       </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(0, 170, 0);</string>
+       </property>
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;❌ OFFLINE&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tool_mode_label">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>54</y>
+         <width>71</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+        </font>
+       </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(0, 0, 0);</string>
+       </property>
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;🖐️ MANUAL&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tool_control_label">
+       <property name="geometry">
+        <rect>
+         <x>81</x>
+         <y>76</y>
+         <width>71</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+        </font>
+       </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(0, 0, 0);</string>
+       </property>
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;⏸️ IDLE&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </widget>
@@ -4637,7 +4774,7 @@
        <rect>
         <x>30</x>
         <y>170</y>
-        <width>231</width>
+        <width>191</width>
         <height>20</height>
        </rect>
       </property>
@@ -4653,7 +4790,7 @@
        <rect>
         <x>30</x>
         <y>140</y>
-        <width>181</width>
+        <width>151</width>
         <height>21</height>
        </rect>
       </property>
@@ -4669,7 +4806,7 @@
        <rect>
         <x>30</x>
         <y>110</y>
-        <width>161</width>
+        <width>131</width>
         <height>23</height>
        </rect>
       </property>
