@@ -71,6 +71,7 @@ class KukaGUI(QWidget, WidgetsManagement):
     do_callback_tool_weight = QtCore.pyqtSignal(Float64)
     do_callback_robot_moving = QtCore.pyqtSignal(Bool)
     do_callback_door_state = QtCore.pyqtSignal(inputs_outputs)
+    do_callback_tool_moving = QtCore.pyqtSignal(Bool)
     
     def __init__(self, parent=None):
         """
@@ -117,7 +118,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         """Conecta los widgets de la UI con sus respectivas funciones."""
         self.calibre_comboBox.currentIndexChanged.connect(self.calibre_selected)
         self.joy_comboBox.currentIndexChanged.connect(self.joy_selected)
-        self.mode_label.setText("NOT CONNECTED")
+        self.robot_connection_label.setText("NOT CONNECTED")
 
         # Botones principales
         self.Finger_Adjust_Button.pressed.connect(self.press_finger_adjust_button)
@@ -137,6 +138,16 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.undoPositions_Button_pick.pressed.connect(self.press_undo_positions_button_pick)
         self.undoPositions_Button_place.pressed.connect(self.press_undo_positions_button_place)
         self.press_Button.pressed.connect(self.aut_press_tool)
+        self.tool_status_label.setStyleSheet("color: black;")
+        self.tool_pose_x_label.setStyleSheet("color: black;")
+        self.tool_pose_a_label.setStyleSheet("color: black;")
+        self.robot_pose_x_label.setStyleSheet("color: black;")
+        self.robot_pose_y_label.setStyleSheet("color: black;")
+        self.robot_pose_z_label.setStyleSheet("color: black;")
+        self.robot_pose_a_label.setStyleSheet("color: black;")
+        self.robot_pose_b_label.setStyleSheet("color: black;")
+        self.robot_pose_c_label.setStyleSheet("color: black;")
+
 
         # Checkboxes
         self.deadMan_check.clicked.connect(self.deadMan_state_changed)
@@ -157,6 +168,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.background_plate_pick.setPixmap(pixmap)
         self.Finger_Adjust_Button.setEnabled(False)
         self.MoveToTable_Button.setEnabled(False)
+        self.press_Button.setEnabled(False)
         self.weightProgressBar_2.setMinimum(0)
         self.weightProgressBar_2.setMaximum(15)
         self.origin_pick_quad = 0
@@ -166,6 +178,9 @@ class KukaGUI(QWidget, WidgetsManagement):
         # Movimiento del robot
         self.sub_robot_moving = rospy.Subscriber(global_var.topic_kuka_moving, Bool, self.callback_robot_moving)
         self.do_callback_robot_moving.connect(self.callback_robot_moving_signal)
+        # Movimiento de la pinza
+        self.sub_tool_moving = rospy.Subscriber(global_var.topic_tool_moving, Bool, self.callback_tool_moving)
+        self.do_callback_tool_moving.connect(self.callback_tool_moving_signal)
         #self.sub_robot_moving = rospy.Subscriber(global_var.topic_kuka_moving, Bool, self.callback_robot_moving)
         # Pose del robot
         self.sub_robot_pose = rospy.Subscriber(global_var.topic_cart_pose_kuka, Cartesian_Euler_pose, self.callback_robot_pose)
@@ -373,6 +388,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.undoPositions_Button_pick.setEnabled(False)
         self.calibre_comboBox.setEnabled(False)
         self.Finger_Adjust_Button.setEnabled(False)
+        self.press_Button.setEnabled(False)
         self.obus_manager.deactivate_buttons('Place', 2, 1, 2)
         self.obus_manager.deactivate_buttons('Place', 4, 1, 4)
         self.obus_manager.deactivate_buttons('Place', 8, 1, 8)
@@ -398,6 +414,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.undoPositions_Button_pick.setEnabled(True)
         self.calibre_comboBox.setEnabled(True)
         self.joy_comboBox.setEnabled(True)
+        self.press_Button.setEnabled(True)
         
         #activa todos los de pick
         self.obus_manager.activate_buttons('Pick', 2, 1, 4)
@@ -492,6 +509,22 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.last_obus_selected_place = -1
 
     # Callback ROS
+    def callback_tool_moving(self,data):        
+        self.do_callback_tool_moving.emit(data)
+    
+    # Callback signal
+    def callback_tool_moving_signal(self, data):
+        """
+        Callback ROS: se ejecuta cuando el tool cambia su estado de movimiento.
+        Actualiza el modo (AUTOMATIC/MANUAL) y activa/desactiva botones.
+        """
+        if data.data == True :
+            self.tool_status_label.setText("Moving")                
+        else:
+            self.tool_status_label.setText("Stopped")
+
+
+    # Callback ROS
     def callback_robot_moving(self,data):        
         self.do_callback_robot_moving.emit(data)
     
@@ -506,7 +539,7 @@ class KukaGUI(QWidget, WidgetsManagement):
             if not global_flags.KUKA_AUT:
                 global_flags.KUKA_AUT=True
             if global_flags.first_time_moving_kuka:
-                    self.mode_label.setText("AUTOMATIC")
+                    self.control_mode_label.setText("AUTOMATIC")
                     self.desactivate_buttons()
                     global_flags.first_time_moving_kuka = False
                             
@@ -514,12 +547,13 @@ class KukaGUI(QWidget, WidgetsManagement):
             if global_flags.KUKA_AUT:    
                 global_flags.KUKA_AUT=False
             if global_flags.first_time_moving_kuka==False:
-                self.mode_label.setText("MANUAL")
+                self.control_mode_label.setText("MANUAL")
                 self.activate_buttons()
                 # Desactivar botones de finger adjust y homing si no hay calibre
                 if global_var.finger_type == 0:
                     self.Gripper_Homing_Button.setEnabled(False)
                     self.Finger_Adjust_Button.setEnabled(False)
+                    self.press_Button.setEnabled(False)
                 global_flags.first_time_moving_kuka = True
 
     
@@ -580,7 +614,24 @@ class KukaGUI(QWidget, WidgetsManagement):
     def callback_robot_pose(self, data):
         if not global_flags.rob_connected :
              global_flags.rob_connected = True
-             self.mode_label.setText("MANUAL")
+             self.robot_connection_label.setText("NOT CONNECTED")
+             #self.robot_connection_label.setStyleSheet("color: red;")
+             self.robot_pose_x_label.setText("N/A")
+             self.robot_pose_y_label.setText("N/A")
+             self.robot_pose_z_label.setText("N/A")
+             self.robot_pose_a_label.setText("N/A")
+             self.robot_pose_b_label.setText("N/A")
+             self.robot_pose_c_label.setText("N/A")
+             return
+        self.robot_connection_label.setText("CONNECTED")
+        #self.robot_connection_label.setStyleSheet("color: green;")
+        self.robot_pose_x_label.setText("%.2f" % data.x)
+        self.robot_pose_y_label.setText("%.2f" % data.y)
+        self.robot_pose_z_label.setText("%.2f" % data.z)
+        self.robot_pose_a_label.setText("%.2f" % data.A)
+        self.robot_pose_b_label.setText("%.2f" % data.B)
+        self.robot_pose_c_label.setText("%.2f" % data.C)
+
         #logger.info("CB:robot_pose_received"),data
         global_var.pos_x_kuka=data.x
         global_var.pos_y_kuka=data.y
@@ -1075,8 +1126,12 @@ class KukaGUI(QWidget, WidgetsManagement):
         
 # Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_tool_state(self, data):
+        #self.tool_status_label.setStyleSheet("color: green;")
+        self.tool_status_label.setText("CONNECTED")
         global_var.x_tool = data.position[2]
         global_var.angle_tool = data.position[3]
+        self.tool_pose_x_label.setText("%.2f" % (1000*global_var.x_tool))
+        self.tool_pose_a_label.setText("%.2f" % global_var.angle_tool)
     
 # Gestión de acción de botón: 'Reset robot'.
     def press_reset_robot_button(self):
@@ -1084,7 +1139,8 @@ class KukaGUI(QWidget, WidgetsManagement):
         command_string = "killall screen; sleep 1; screen -S bringup -d -m roslaunch kuka_robot_bringup kuka_robot_bringup_standalone.launch"
         #command_string = "rosnode kill /kuka_robot/kuka_cartesian_hardware_interface; sleep 1; ROS_NAMESPACE=kuka_robot roslaunch kuka_rsi_cartesian_hw_interface test_hardware_interface.launch &"
         os.system(command_string)
-        self.mode_label.setText("NOT CONNECTED")
+        self.control_mode_label.setText("NOT CONNECTED")
+        #self.control_mode_label.setStyleSheet("color: green;")
         global_flags.rob_connected = False
            
 # Función: Sleep loop.

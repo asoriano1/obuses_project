@@ -62,6 +62,7 @@ topic_horiz_force='/phidget_load/vertical_force'
 topic_motor_status='/kuka_tool/robotnik_base_hw/status'
 topic_tool_state='/kuka_tool/joint_states'
 topic_door_state='/phidgets_vint_hub/io'
+topic_tool_moving='/kuka_tool/finger_moving'
 
 #CAJA GRIS
 Prepick_Pose_z=1542.38

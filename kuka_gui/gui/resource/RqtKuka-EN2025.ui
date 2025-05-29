@@ -4057,11 +4057,11 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <widget class="QLabel" name="mode_label_2">
+      <widget class="QLabel" name="tool_status_label">
        <property name="geometry">
         <rect>
-         <x>160</x>
-         <y>10</y>
+         <x>157</x>
+         <y>8</y>
          <width>121</width>
          <height>16</height>
         </rect>
@@ -4078,7 +4078,7 @@
         <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;NOT RUNNING&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; color:#ff0000;&quot;&gt;NOT RUNNING&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_30">
@@ -4126,14 +4126,14 @@
       <widget class="QLabel" name="label_35">
        <property name="geometry">
         <rect>
-         <x>130</x>
-         <y>80</y>
-         <width>21</width>
-         <height>16</height>
+         <x>100</x>
+         <y>77</y>
+         <width>51</width>
+         <height>20</height>
         </rect>
        </property>
        <property name="text">
-        <string>A:</string>
+        <string>Angle:</string>
        </property>
       </widget>
       <widget class="QLabel" name="tool_pose_x_label">
@@ -4247,7 +4247,7 @@
         <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;NOT CONECTED&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; color:#ff0000;&quot;&gt;NOT CONECTED&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_31">
@@ -4491,8 +4491,8 @@
       <widget class="QLabel" name="control_mode_label">
        <property name="geometry">
         <rect>
-         <x>172</x>
-         <y>12</y>
+         <x>171</x>
+         <y>11</y>
          <width>111</width>
          <height>20</height>
         </rect>
@@ -4509,7 +4509,7 @@
         <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;MANUAL&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;MANUAL&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_24">
@@ -4637,7 +4637,7 @@
        <rect>
         <x>30</x>
         <y>170</y>
-        <width>191</width>
+        <width>231</width>
         <height>20</height>
        </rect>
       </property>
@@ -4653,7 +4653,7 @@
        <rect>
         <x>30</x>
         <y>140</y>
-        <width>151</width>
+        <width>181</width>
         <height>21</height>
        </rect>
       </property>
@@ -4669,7 +4669,7 @@
        <rect>
         <x>30</x>
         <y>110</y>
-        <width>131</width>
+        <width>161</width>
         <height>23</height>
        </rect>
       </property>
