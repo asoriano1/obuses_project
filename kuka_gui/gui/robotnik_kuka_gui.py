@@ -121,7 +121,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         """Conecta los widgets de la UI con sus respectivas funciones."""
         self.calibre_comboBox.currentIndexChanged.connect(self.calibre_selected)
         self.joy_comboBox.currentIndexChanged.connect(self.joy_selected)
-        self.robot_connection_label.setText("OFFLINE")
+        self.robot_connection_label.setText("❌OFFLINE")
 
         # Botones principales
         self.Finger_Adjust_Button.pressed.connect(self.press_finger_adjust_button)
@@ -535,12 +535,12 @@ class KukaGUI(QWidget, WidgetsManagement):
         """
         if data.data == True :
             if global_flags.TOOL_AUT:
-                self.tool_control_label.setText("AUTO")
-            self.tool_mov_label.setText(" MOVING")
+                self.tool_control_label.setText("⚙️ AUTO")
+            self.tool_mov_label.setText("▶ MOVING")
             self.tool_moving = True
         else:
             if not global_flags.TOOL_AUT:
-                self.tool_control_label.setText("MANUAL")
+                self.tool_control_label.setText("🖐️ MANUAL")
             self.tool_mov_label.setText("⏸️ IDLE")
             self.tool_moving = False
             global_flags.TOOL_AUT=False
@@ -559,11 +559,11 @@ class KukaGUI(QWidget, WidgetsManagement):
         #logger.info("CB:moving_received:"),data.data
         
         if data.data == True :
-            self.robot_mov_label.setText("MOVING")
+            self.robot_mov_label.setText("▶ MOVING")
             if not global_flags.KUKA_AUT:
                 global_flags.KUKA_AUT=True
             if global_flags.first_time_moving_kuka:
-                    self.robot_connection_label.setText("AUTO")
+                    self.robot_connection_label.setText("⚙️ AUTO")
                     self.desactivate_buttons()
                     global_flags.first_time_moving_kuka = False
                             
@@ -664,7 +664,7 @@ class KukaGUI(QWidget, WidgetsManagement):
     def callback_robot_pose(self, data):
         if not global_flags.rob_connected :
              global_flags.rob_connected = True
-        self.robot_connection_label.setText("ONLINE")
+        self.robot_connection_label.setText("✓ONLINE")
         #self.robot_connection_label.setStyleSheet("color: green;")
         self.robot_pose_x_label.setText("%.2f" % data.x)
         self.robot_pose_y_label.setText("%.2f" % data.y)
@@ -783,7 +783,7 @@ class KukaGUI(QWidget, WidgetsManagement):
                 #gripper_move_service = rospy.ServiceProxy(global_var.srv_finger_set_pose,set_odometry)
                 homing_service = rospy.ServiceProxy(global_var.srv_tool_homing, Trigger)           
                 ret = homing_service()
-                self.tool_control_label.setText("AUTO")
+                self.tool_control_label.setText("⚙️ AUTO")
                 global_flags.TOOL_AUT = True
                 #TOOL_HOMED=True 
                 #weight_empty=weight_read
@@ -841,7 +841,7 @@ class KukaGUI(QWidget, WidgetsManagement):
                 logger.error("Service call failed: %s", e)
                 QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
                 
-            self.tool_control_label.setText("AUTO")
+            self.tool_control_label.setText("⚙️ AUTO")
             global_flags.TOOL_AUT = True
             
 # Gestión de acción de botón: 'Led on'.
@@ -1199,7 +1199,7 @@ class KukaGUI(QWidget, WidgetsManagement):
 # Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_tool_state(self, data):
         #self.tool_status_label.setStyleSheet("color: green;")
-        self.tool_connection_label.setText("ONLINE")
+        self.tool_connection_label.setText("✓ONLINE")
         global_var.x_tool = data.position[2]
         global_var.angle_tool = data.position[3]
         self.tool_pose_x_label.setText("%.2f" % (1000*global_var.x_tool))
@@ -1211,7 +1211,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         command_string = "killall screen; sleep 1; screen -S bringup -d -m roslaunch kuka_robot_bringup kuka_robot_bringup_standalone.launch"
         #command_string = "rosnode kill /kuka_robot/kuka_cartesian_hardware_interface; sleep 1; ROS_NAMESPACE=kuka_robot roslaunch kuka_rsi_cartesian_hw_interface test_hardware_interface.launch &"
         os.system(command_string)
-        self.robot_connection_label.setText("OFFLINE")
+        self.robot_connection_label.setText("❌OFFLINE")
         #self.robot_connection_label.setStyleSheet("color: green;")
         global_flags.rob_connected = False
            
