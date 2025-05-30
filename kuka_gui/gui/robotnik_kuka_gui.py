@@ -563,7 +563,7 @@ class KukaGUI(QWidget, WidgetsManagement):
             if not global_flags.KUKA_AUT:
                 global_flags.KUKA_AUT=True
             if global_flags.first_time_moving_kuka:
-                    self.robot_connection_label.setText("⚙️ AUTO")
+                    self.robot_control_label.setText("⚙️ AUTO")
                     self.desactivate_buttons()
                     global_flags.first_time_moving_kuka = False
                             
@@ -571,8 +571,9 @@ class KukaGUI(QWidget, WidgetsManagement):
             self.robot_mov_label.setText("⏸️ IDLE")
             if global_flags.KUKA_AUT:    
                 global_flags.KUKA_AUT=False
+               
             if global_flags.first_time_moving_kuka==False:
-                self.robot_connection_label.setText("🖐️ MANUAL")
+                self.robot_control_label.setText("🖐️ MANUAL")
                 self.activate_buttons()
                 # Desactivar botones de finger adjust y homing si no hay calibre
                 if global_var.finger_type == 0:
@@ -593,6 +594,8 @@ class KukaGUI(QWidget, WidgetsManagement):
         #logger.info("CB:moving_received:"),data.data
         if data.data and not global_flags.TOOL_HOMED:
             self.Finger_Adjust_Button.setEnabled(True)
+        #if  not global_flags.TOOL_HOMED:
+        #    self.Finger_Adjust_Button.setEnabled(False)
         global_flags.TOOL_HOMED=data.data
         
     
