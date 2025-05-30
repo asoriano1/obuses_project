@@ -64,6 +64,7 @@ topic_tool_state='/kuka_tool/joint_states'
 topic_door_state='/phidgets_vint_hub/io'
 topic_tool_moving='/kuka_tool/finger_moving'
 topic_tool_homed='/kuka_tool/finger_homed'
+topic_tool_auto='/kuka_tool/finger_auto'
 
 #CAJA GRIS
 Prepick_Pose_z=1542.38
@@ -94,3 +95,7 @@ current_limit_cont = 5
 current_limit_3 = 7
 current_limit_4 = 8
 current_limit_picked = 2
+
+#Turning radius
+radius_threshold = 1600
+min_radius_threshold = 1400

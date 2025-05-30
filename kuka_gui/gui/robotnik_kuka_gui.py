@@ -9,6 +9,7 @@ Incluye conexión con ROS (topics, servicios), configuración visual, y control 
 """
 import logging
 from color_logger import ColorFormatter
+import math
 
 logger = logging.getLogger('robotnik_kuka_gui')
 logger.setLevel(logging.DEBUG)
@@ -73,6 +74,7 @@ class KukaGUI(QWidget, WidgetsManagement):
     do_callback_door_state = QtCore.pyqtSignal(inputs_outputs)
     do_callback_tool_moving = QtCore.pyqtSignal(Bool)
     do_callback_tool_homed = QtCore.pyqtSignal(Bool)
+    do_callback_tool_auto = QtCore.pyqtSignal(Bool)
     
     def __init__(self, parent=None):
         """
@@ -210,6 +212,9 @@ class KukaGUI(QWidget, WidgetsManagement):
         # Estado del homming de la tool
         self.sub_tool_homed = rospy.Subscriber(global_var.topic_tool_homed, Bool, self.callback_tool_homed)
         self.do_callback_tool_homed.connect(self.callback_tool_homed_signal)
+        # Estado del control de la tool (auto o manual)
+        self.sub_tool_auto = rospy.Subscriber(global_var.topic_tool_auto, Bool, self.callback_tool_auto)
+        self.do_callback_tool_auto.connect(self.callback_tool_auto_signal)        
         
 
     def _init_ros_services(self):
@@ -534,7 +539,7 @@ class KukaGUI(QWidget, WidgetsManagement):
             self.tool_mov_label.setText(" MOVING")
             self.tool_moving = True
         else:
-            if global_flags.TOOL_AUT:
+            if not global_flags.TOOL_AUT:
                 self.tool_control_label.setText("MANUAL")
             self.tool_mov_label.setText("⏸️ IDLE")
             self.tool_moving = False
@@ -591,7 +596,18 @@ class KukaGUI(QWidget, WidgetsManagement):
         global_flags.TOOL_HOMED=data.data
         
     
-            
+    # Callback ROS
+    def callback_tool_auto(self,data):        
+        self.do_callback_tool_auto.emit(data)
+    
+    # Callback signal
+    def callback_tool_auto_signal(self, data):
+        """
+        Callback ROS: tool auto
+        """
+        global_flags.TOOL_AUT=data.data
+        
+    
     # Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_motor_status_signal(self,data):
         """
@@ -792,7 +808,7 @@ class KukaGUI(QWidget, WidgetsManagement):
             except rospy.ServiceException as e:
                 logger.error("Service call failed: %s", e)
                 QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
-            self.sleep_loop(1)
+            self.sleep_loop(2)
             
             
 # Gestión de acción de botón: 'Finger adjust'.
@@ -948,6 +964,31 @@ class KukaGUI(QWidget, WidgetsManagement):
             while global_flags.KUKA_AUT:
                 logger.debug("[press_homming_button] Esperando a que global_flags.KUKA_AUT sea False...")
                 self.sleep_loop(0.3)
+            
+            # Comprobar que estamos dentro del radio
+            current_radius = math.sqrt(global_var.pos_x_kuka**2 + global_var.pos_y_kuka**2)
+            if current_radius > global_var.radius_threshold:
+                print("Radius of rotation bigger than threshold, retracting")
+                theta = math.atan2(global_var.pos_y_kuka, global_var.pos_x_kuka)
+                new_x =  global_var.radius_threshold*0.95*math.cos(theta)
+                new_y =  global_var.radius_threshold*0.95*math.sin(theta)
+                logger.debug("[Obus_manager] Calling abs_service with new x=%s and y=%s", new_x, new_y)
+                abs_service = rospy.ServiceProxy(global_var.srv_name_move_abs_fast, set_CartesianEuler_pose)
+                abs_service(new_x, new_y, global_var.pos_z_kuka, global_var.pos_a_kuka, global_var.pos_b_kuka, global_var.pos_c_kuka)
+                self.sleep_loop(2)
+                while global_flags.KUKA_AUT:                
+                    self.sleep_loop(0.3)
+            if current_radius < global_var.min_radius_threshold:
+                print("Radius of rotation smaller than threshold, advancing")
+                theta = math.atan2(global_var.pos_y_kuka, global_var.pos_x_kuka)
+                new_x =  global_var.min_radius_threshold*1.05*math.cos(theta)
+                new_y =  global_var.min_radius_threshold*1.05*math.sin(theta)
+                logger.debug("[Obus_manager] Calling abs_service with new x=%s and y=%s", new_x, new_y)
+                abs_service = rospy.ServiceProxy(global_var.srv_name_move_abs_fast, set_CartesianEuler_pose)
+                abs_service(new_x, new_y, global_var.pos_z_kuka, global_var.pos_a_kuka, global_var.pos_b_kuka, global_var.pos_c_kuka)
+                self.sleep_loop(2)
+                while global_flags.KUKA_AUT:                
+                    self.sleep_loop(0.3)
 
             logger.debug("[press_homming_button] Llamando a home_A1_A6_service...")
             home_A1_A6_service = rospy.ServiceProxy(global_var.srv_move_A1_A6, set_A1_A6)

@@ -11,6 +11,7 @@ from robotnik_msgs.srv import set_CartesianEuler_pose
 from kuka_rsi_cartesian_hw_interface.srv import set_A1_A6
 import logging
 import os
+import math
 
 logger = logging.getLogger('robotnik_kuka_gui')
 
@@ -262,6 +263,29 @@ class ObusManager:
             rel_service(0, 0, pre_z - global_var.pos_z_kuka, 0, 0, 0)
             self.parent.sleep_loop(2)
             while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)
+            
+            # Comprobar que estamos dentro del radio
+            current_radius = math.sqrt(global_var.pos_x_kuka**2 + global_var.pos_y_kuka**2)
+            if current_radius > global_var.radius_threshold:
+                print("Radius of rotation bigger than threshold, retracting")
+                theta = math.atan2(global_var.pos_y_kuka, global_var.pos_x_kuka)
+                new_x =  global_var.radius_threshold*0.95*math.cos(theta)
+                new_y =  global_var.radius_threshold*0.95*math.sin(theta)
+                logger.debug("[Obus_manager] Calling abs_service with new x=%s and y=%s", new_x, new_y)
+                abs_service = rospy.ServiceProxy(global_var.srv_name_move_abs_fast, set_CartesianEuler_pose)
+                abs_service(new_x, new_y, global_var.pos_z_kuka, global_var.pos_a_kuka, global_var.pos_b_kuka, global_var.pos_c_kuka)
+                self.parent.sleep_loop(2)
+                while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)
+            if current_radius < global_var.min_radius_threshold:
+                print("Radius of rotation smaller than threshold, advancing")
+                theta = math.atan2(global_var.pos_y_kuka, global_var.pos_x_kuka)
+                new_x =  global_var.min_radius_threshold*1.05*math.cos(theta)
+                new_y =  global_var.min_radius_threshold*1.05*math.sin(theta)
+                logger.debug("[Obus_manager] Calling abs_service with new x=%s and y=%s", new_x, new_y)
+                abs_service = rospy.ServiceProxy(global_var.srv_name_move_abs_fast, set_CartesianEuler_pose)
+                abs_service(new_x, new_y, global_var.pos_z_kuka, global_var.pos_a_kuka, global_var.pos_b_kuka, global_var.pos_c_kuka)
+                self.parent.sleep_loop(2)
+                while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)
             
             # Movimiento en ejes A1_A6
             axis_service_proxy = rospy.ServiceProxy(axis_service, set_A1_A6)
