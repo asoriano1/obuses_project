@@ -1206,7 +1206,8 @@ class KukaGUI(QWidget, WidgetsManagement):
         global_var.x_tool = data.position[2]
         global_var.angle_tool = data.position[3]
         self.tool_pose_x_label.setText("%.2f" % (1000*global_var.x_tool))
-        self.tool_pose_a_label.setText("%.2f" % global_var.angle_tool)
+        angle_degrees = math.degrees(global_var.angle_tool)
+        self.tool_pose_a_label.setText("%.2f" % angle_degrees)
     
 # Gestión de acción de botón: 'Reset robot'.
     def press_reset_robot_button(self):
