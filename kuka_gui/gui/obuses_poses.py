@@ -6,7 +6,7 @@ pose_c = 179
 pose_a_left = -179
 pose_a_right = 1
 # z is always safe
-pose_z_safe = 1550 #1535.39
+pose_z_safe = 1630 #1535.39
 
 ##AXIS POSITIONS A1 and A6
 pick_A1=-87.0 #-87

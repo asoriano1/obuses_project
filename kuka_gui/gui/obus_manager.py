@@ -314,7 +314,7 @@ class ObusManager:
             # bajada rapida en Z (prepick/preplace)
             logger.debug("[Obus_manager] Calling rel_service with pre_z=%s, pos_z_kuka=%s", pre_z, global_var.pos_z_kuka)
             rel_service = rospy.ServiceProxy(global_var.srv_name_move_rel_fast, set_CartesianEuler_pose)
-            rel_service(0, 0, -275, 0, 0, 0)
+            rel_service(0, 0, -195, 0, 0, 0)
             self.parent.sleep_loop(2)
             while global_flags.KUKA_AUT: self.parent.sleep_loop(0.3)
 
