@@ -65,6 +65,7 @@ topic_door_state='/phidgets_vint_hub/io'
 topic_tool_moving='/kuka_tool/finger_moving'
 topic_tool_homed='/kuka_tool/finger_homed'
 topic_tool_auto='/kuka_tool/finger_auto'
+topic_pad_vel='/kuka_pad/pad_vel'
 
 #CAJA GRIS
 Prepick_Pose_z=1542.38

@@ -75,6 +75,7 @@ class KukaGUI(QWidget, WidgetsManagement):
     do_callback_tool_moving = QtCore.pyqtSignal(Bool)
     do_callback_tool_homed = QtCore.pyqtSignal(Bool)
     do_callback_tool_auto = QtCore.pyqtSignal(Bool)
+    do_callback_pad_vel = QtCore.pyqtSignal(Float64)
     
     def __init__(self, parent=None):
         """
@@ -214,7 +215,10 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.do_callback_tool_homed.connect(self.callback_tool_homed_signal)
         # Estado del control de la tool (auto o manual)
         self.sub_tool_auto = rospy.Subscriber(global_var.topic_tool_auto, Bool, self.callback_tool_auto)
-        self.do_callback_tool_auto.connect(self.callback_tool_auto_signal)        
+        self.do_callback_tool_auto.connect(self.callback_tool_auto_signal)
+        # Pad velocity
+        self.sub_pad_vel = rospy.Subscriber(global_var.topic_pad_vel, Float64, self.callback_pad_vel)
+        self.do_callback_pad_vel.connect(self.callback_pad_vel_signal)      
         
 
     def _init_ros_services(self):
@@ -544,6 +548,18 @@ class KukaGUI(QWidget, WidgetsManagement):
             self.tool_mov_label.setText("⏸️ IDLE")
             self.tool_moving = False
             global_flags.TOOL_AUT=False
+
+
+    # Callback ROS
+    def callback_pad_vel(self,data):        
+        self.do_callback_pad_vel.emit(data)
+    
+    # Callback signal
+    def callback_pad_vel_signal(self, data):
+        """
+        Callback ROS: se ejecuta cuando se publica el % de velocidad del mando
+        """
+        self.robot_pad_velocity.setText("%d",% data.data)
 
 
     # Callback ROS
