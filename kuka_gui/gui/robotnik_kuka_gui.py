@@ -559,7 +559,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         """
         Callback ROS: se ejecuta cuando se publica el % de velocidad del mando
         """
-        self.robot_pad_velocity.setText("%d",% data.data)
+        self.robot_pad_velocity.setText("%d" % data.data)
 
 
     # Callback ROS
