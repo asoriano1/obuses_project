@@ -142,10 +142,10 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.undoPositions_Button_pick.pressed.connect(self.press_undo_positions_button_pick)
         self.undoPositions_Button_place.pressed.connect(self.press_undo_positions_button_place)
         self.press_Button.pressed.connect(self.aut_press_tool)
-        self.tool_connection_label.setStyleSheet("color: black;")
+        self.tool_connection_label.setStyleSheet("color: red;")
         self.tool_control_label.setStyleSheet("color: black;")
         self.tool_mov_label.setStyleSheet("color: black;")
-        self.robot_connection_label.setStyleSheet("color: black;")
+        self.robot_connection_label.setStyleSheet("color: red;")
         self.robot_control_label.setStyleSheet("color: black;")
         self.robot_mov_label.setStyleSheet("color: black;")
         self.tool_pose_x_label.setStyleSheet("color: black;")
@@ -545,7 +545,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         else:
             if not global_flags.TOOL_AUT:
                 self.tool_control_label.setText("🖐️ MANUAL")
-            self.tool_mov_label.setText("⏸️ IDLE")
+            self.tool_mov_label.setText("⏸️ PAUSE")
             self.tool_moving = False
             global_flags.TOOL_AUT=False
 
@@ -584,7 +584,7 @@ class KukaGUI(QWidget, WidgetsManagement):
                     global_flags.first_time_moving_kuka = False
                             
         else:
-            self.robot_mov_label.setText("⏸️ IDLE")
+            self.robot_mov_label.setText("⏸️ PAUSE")
             if global_flags.KUKA_AUT:    
                 global_flags.KUKA_AUT=False
                
@@ -684,7 +684,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         if not global_flags.rob_connected :
              global_flags.rob_connected = True
         self.robot_connection_label.setText("✓ONLINE")
-        #self.robot_connection_label.setStyleSheet("color: green;")
+        self.robot_connection_label.setStyleSheet("color: green;")
         self.robot_pose_x_label.setText("%.2f" % data.x)
         self.robot_pose_y_label.setText("%.2f" % data.y)
         self.robot_pose_z_label.setText("%.2f" % data.z)
@@ -1145,6 +1145,8 @@ class KukaGUI(QWidget, WidgetsManagement):
     def press_reset_external_pc_button(self):
         ret = QMessageBox.warning(self, "WARNING!", 'Are you sure? \nExternal PC is going to reset.\n Wait 10 sec and restart the GUI.', QMessageBox.Ok, QMessageBox.Cancel)
         if ret == QMessageBox.Ok:
+            self.tool_connection_label.setText("❌OFFLINE")
+            self.tool_connection_label.setStyleSheet("color: red;")
             #command_string = "ssh robotnik@192.168.1.10 sudo -S <<< \"R0b0tn1K\" reboot \n"
             command_string = global_var.SCRIPTS_PATH + "reboot.sh"
             logger.info(command_string)
@@ -1217,7 +1219,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         
 # Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_tool_state(self, data):
-        #self.tool_status_label.setStyleSheet("color: green;")
+        self.tool_connection_label.setStyleSheet("color: green;")
         self.tool_connection_label.setText("✓ONLINE")
         global_var.x_tool = data.position[2]
         global_var.angle_tool = data.position[3]
@@ -1227,12 +1229,12 @@ class KukaGUI(QWidget, WidgetsManagement):
     
 # Gestión de acción de botón: 'Reset robot'.
     def press_reset_robot_button(self):
+        self.robot_connection_label.setText("❌OFFLINE")
+        self.robot_connection_label.setStyleSheet("color: red;")
         #command_string = "rosnode kill /kuka_pad/ps4_joystick; sleep 1; rosnode kill /kuka_pad/itowa_safe_joystick; sleep 1; rosnode kill /kuka_pad/robotnik_trajectory_pad_node; sleep 1; rosnode kill /kuka_robot/kuka_cartesian_hardware_interface; sleep 1; roslaunch kuka_robot_bringup kuka_robot_bringup_standalone.launch &"
         command_string = "killall screen; sleep 1; screen -S bringup -d -m roslaunch kuka_robot_bringup kuka_robot_bringup_standalone.launch"
         #command_string = "rosnode kill /kuka_robot/kuka_cartesian_hardware_interface; sleep 1; ROS_NAMESPACE=kuka_robot roslaunch kuka_rsi_cartesian_hw_interface test_hardware_interface.launch &"
         os.system(command_string)
-        self.robot_connection_label.setText("❌OFFLINE")
-        #self.robot_connection_label.setStyleSheet("color: green;")
         global_flags.rob_connected = False
            
 # Función: Sleep loop.
