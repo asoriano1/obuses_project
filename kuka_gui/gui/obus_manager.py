@@ -200,10 +200,10 @@ class ObusManager:
         # Verifica si ya está ocupado
         if self.parent.state_dict[state_key]:
             logger.debug("[Obus_manager] Position %s already occupied.", state_key)
-            ret = QMessageBox.warning(self.parent, "ERROR!", 'Position already occupied.', QMessageBox.Ok)
+            ret = QMessageBox.warning(self.parent, "ERROR!", 'Emplacement déjà occupé.', QMessageBox.Ok)
             return
 
-        ret = QMessageBox.warning(self.parent, "WARNING!", 'Are you sure? \nRobot moves automatically', QMessageBox.Ok, QMessageBox.Cancel)
+        ret = QMessageBox.warning(self.parent, "WARNING!", 'Êtes-vous sûr? \nLe robot va bouger en automatique.', QMessageBox.Ok, QMessageBox.Cancel)
         if ret != QMessageBox.Ok:
             logger.debug("[Obus_manager] User cancelled action for button %s.", btn_name)
             return
@@ -320,6 +320,6 @@ class ObusManager:
 
         except rospy.ServiceException as e:
             logger.error("Service call failed: %s", e)
-            QMessageBox.critical(self.parent, "WARNING!", 'Movement Service not available.', QMessageBox.Ok)
+            QMessageBox.critical(self.parent, "ERROR!", "Le Mouvement n'a pas pu être complété.", QMessageBox.Ok)
 
 

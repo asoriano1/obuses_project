@@ -229,21 +229,21 @@ class KukaGUI(QWidget, WidgetsManagement):
             ret = deadman_service(True)
         except rospy.ServiceException as e:
             logger.error("Service call failed: %s", e)
-            QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+            QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
 
         try:
             angle_mode_service = rospy.ServiceProxy(global_var.srv_angle_mode, SetBool)
             ret = angle_mode_service(True)
         except rospy.ServiceException as e:
             logger.error("Service call failed: %s", e)
-            QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+            QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
 
         try:
             toolOrientation_service = rospy.ServiceProxy(global_var.srv_rel_tool, SetBool)
             ret = toolOrientation_service(False)
         except rospy.ServiceException as e:
             logger.error("Service call failed: %s", e)
-            QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+            QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
     
     #inicialización del estado de los obuses para state_dict['tipo', grupo, idx]
     def init_state_dict(self):
@@ -650,7 +650,7 @@ class KukaGUI(QWidget, WidgetsManagement):
             #if(weight_read-weight_empty<-10):
             global_flags.first_time_enabled=False
             #logger.info("Warninng of weight should be here")				
-            ret = QMessageBox.information(self, "WARNING!", 'Tool enabled', QMessageBox.Ok)
+            ret = QMessageBox.information(self, "WARNING!", 'Pince habilitée', QMessageBox.Ok)
         if(motor1.status=="FAULT"):
             global_flags.first_time_enabled=True
             #logger.info(first_time_enabled)
@@ -770,7 +770,7 @@ class KukaGUI(QWidget, WidgetsManagement):
     
 # Gestión de acción de botón: 'Move to rotation table'.
     def press_move_to_rotation_table_button(self):
-        ret = QMessageBox.warning(self, "WARNING!", 'Are you sure? \nRobot moves automatically', QMessageBox.Ok, QMessageBox.Cancel)
+        ret = QMessageBox.warning(self, "WARNING!", 'Êtes-vous sûr? \nLe robot va bouger en automatique.', QMessageBox.Ok, QMessageBox.Cancel)
         if ret == QMessageBox.Ok:
             try:
                 placed_rel_service = rospy.ServiceProxy(global_var.srv_name_move_rel_slow, set_CartesianEuler_pose)
@@ -787,11 +787,11 @@ class KukaGUI(QWidget, WidgetsManagement):
                 ret = placed_abs_service(obuses_poses.table_pose_x, obuses_poses.table_pose_y, obuses_poses.table_pose_z, obuses_poses.table_pose_a, obuses_poses.table_pose_b, obuses_poses.table_pose_c)
             except rospy.ServiceException as e:
                 logger.error("Service call failed: %s", e)
-                ret=QMessageBox.critical(self, "ERROR!", 'Movement Service not available.', QMessageBox.Ok)    
+                ret=QMessageBox.critical(self, "ERROR!", 'Service de mouvement indisponible.', QMessageBox.Ok)    
                     
 # Gestión de acción de botón: 'Tool homming'.
     def press_tool_homming(self):
-        ret = QMessageBox.warning(self, "WARNING!", 'Are you sure? \nBe sure there is no obus picked', QMessageBox.Ok, QMessageBox.Cancel)        
+        ret = QMessageBox.warning(self, "WARNING!", "Êtes-vous sûr? \nAssurez-vous qu'il n'y ai pas d'obus saisi", QMessageBox.Ok, QMessageBox.Cancel)        
         if ret == QMessageBox.Ok:
             #Call tool homing method
             try:
@@ -826,15 +826,15 @@ class KukaGUI(QWidget, WidgetsManagement):
                     limit_peak_current_service(global_var.current_limit_4)               
             except rospy.ServiceException as e:
                 logger.error("Service call failed: %s", e)
-                QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
             self.sleep_loop(2)
             
             
 # Gestión de acción de botón: 'Finger adjust'.
     def press_finger_adjust_button(self):
         if(not global_flags.TOOL_HOMED):
-                QMessageBox.warning(self, "WARNING!", 'Are you sure? \nHoming of the tool should be done first', QMessageBox.Ok, QMessageBox.Cancel)
-        ret = QMessageBox.warning(self, "WARNING!", 'Are you sure? \nBe sure there is no obus picked', QMessageBox.Ok, QMessageBox.Cancel)
+                QMessageBox.warning(self, "WARNING!", 'Êtes-vous sûr? \nHoming de la pince devrait être effectué avant', QMessageBox.Ok, QMessageBox.Cancel)
+        ret = QMessageBox.warning(self, "WARNING!", "Êtes-vous sûr? \nAssurez-vous qu'il n'y ai pas d'obus saisi", QMessageBox.Ok, QMessageBox.Cancel)
         if ret == QMessageBox.Ok:
             try:
                 gripper_trasl_service = rospy.ServiceProxy(global_var.srv_finger_set_pose,set_odometry)
@@ -858,7 +858,7 @@ class KukaGUI(QWidget, WidgetsManagement):
                     ret=gripper_trasl_service(tras_from_homing,0,0,0)
             except rospy.ServiceException as e:
                 logger.error("Service call failed: %s", e)
-                QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
                 
             self.tool_control_label.setText("⚙️ AUTO")
             global_flags.TOOL_AUT = True
@@ -870,7 +870,7 @@ class KukaGUI(QWidget, WidgetsManagement):
             ret = led_service(6,False)
         except rospy.ServiceException as e:
             logger.error("Service call failed: %s", e)
-            QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+            QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
 
 # Gestión de acción de botón: 'Led off'.
     def press_led_off_button(self):
@@ -879,11 +879,11 @@ class KukaGUI(QWidget, WidgetsManagement):
             ret = led_service(6,True)
         except rospy.ServiceException as e:
             logger.error("Service call failed: %s", e)
-            QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+            QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
         
 # Función: Deadman state changed.
     def deadMan_state_changed(self):
-        ret_q = QMessageBox.warning(self, "WARNING!", 'Changes to the current configuration will be applied', QMessageBox.Ok, QMessageBox.Cancel)
+        ret_q = QMessageBox.warning(self, "WARNING!", 'Des changements à la configuration actuelle vont être appliqués', QMessageBox.Ok, QMessageBox.Cancel)
         if(ret_q==QMessageBox.Ok):
                     if(self.deadMan_check.isChecked()):
                                     try:
@@ -891,20 +891,20 @@ class KukaGUI(QWidget, WidgetsManagement):
                                         ret = deadman_service(True)
                                     except rospy.ServiceException as e:
                                         logger.error("Service call failed: %s", e)
-                                        QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                                        QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
                     elif(self.deadMan_check.isChecked()==False):
                                     try:
                                         deadman_service=rospy.ServiceProxy(global_var.srv_deadman, SetBool)
                                         ret = deadman_service(False)
                                     except rospy.ServiceException as e:
                                         logger.error("Service call failed: %s", e)
-                                        QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                                        QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
         else : 
                 self.deadMan_check.nextCheckState()
                 
 # Función: Toolangle state changed.
     def toolAngle_state_changed(self):
-        ret_q = QMessageBox.warning(self, "WARNING!", 'Changes to the current configuration will be applied', QMessageBox.Ok, QMessageBox.Cancel)
+        ret_q = QMessageBox.warning(self, "WARNING!", 'Des changements à la configuration actuelle vont être appliqués', QMessageBox.Ok, QMessageBox.Cancel)
         if(ret_q==QMessageBox.Ok):
                         if(self.toolAngle_check.isChecked()):
                                     try:
@@ -912,20 +912,20 @@ class KukaGUI(QWidget, WidgetsManagement):
                                         ret = angle_mode_service(True)
                                     except rospy.ServiceException as e:
                                         logger.error("Service call failed: %s", e)
-                                        QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                                        QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
                         elif(self.toolAngle_check.isChecked()==False):
                                     try:
                                         angle_mode_service=rospy.ServiceProxy(global_var.srv_angle_mode, SetBool)
                                         ret = angle_mode_service(False)
                                     except rospy.ServiceException as e:
                                         logger.error("Service call failed: %s", e)
-                                        QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                                        QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
         else:
                 self.toolAngle_check.nextCheckState()
 
 # Función: Toolorientation state changed.
     def toolOrientation_state_changed(self):
-        ret_q = QMessageBox.warning(self, "WARNING!", 'Changes to the current configuration will be applied', QMessageBox.Ok, QMessageBox.Cancel)
+        ret_q = QMessageBox.warning(self, "WARNING!", 'Des changements à la configuration actuelle vont être appliqués', QMessageBox.Ok, QMessageBox.Cancel)
         if(ret_q==QMessageBox.Ok):
                 if(self.toolOrientation_check.isChecked()):
                             try:
@@ -933,14 +933,14 @@ class KukaGUI(QWidget, WidgetsManagement):
                                 ret = toolOrientation_service(True)
                             except rospy.ServiceException as e:
                                 logger.error("Service call failed: %s", e)
-                                QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                                QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
                 elif(self.toolOrientation_check.isChecked()==False):
                             try:
                                 toolOrientation_service=rospy.ServiceProxy(global_var.srv_rel_tool, SetBool)
                                 ret = toolOrientation_service(False)
                             except rospy.ServiceException as e:
                                 logger.error("Service call failed: %s", e)
-                                QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                                QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
         else:
                 self.toolOrientation_check.nextCheckState()
 			
@@ -951,7 +951,7 @@ class KukaGUI(QWidget, WidgetsManagement):
             ret = led_service(4,False)
         except rospy.ServiceException as e:
             logger.error("Service call failed: %s", e)
-            QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+            QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
     
 # Gestión de acción de botón: 'Light off'.
     def press_light_off_button(self):
@@ -960,12 +960,12 @@ class KukaGUI(QWidget, WidgetsManagement):
             ret = led_service(4,True)
         except rospy.ServiceException as e:
             logger.error("Service call failed: %s", e)
-            QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+            QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
             
 # Gestión de acción de botón: 'Homming'.
     def press_homming_button(self):     
         ret = QMessageBox.warning(self, "WARNING!", 
-                                'Are you sure? \nRobot is going to move autonomously', 
+                                'Êtes-vous sûr? \nLe robot va bouger en automatique.', 
                                 QMessageBox.Ok, QMessageBox.Cancel)
         if ret != QMessageBox.Ok:
             logger.debug("[press_homming_button] Acción cancelada por el usuario.")
@@ -1028,14 +1028,14 @@ class KukaGUI(QWidget, WidgetsManagement):
                 logger.warning("[press_homming_button] Advertencia: La llamada a placed_abs_service no devolvió True.")
         except rospy.ServiceException as e:
             logger.error("[press_homming_button] FALLO EN LA LLAMADA AL SERVICIO: %s" % e)
-            QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+            QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
         except Exception as e:
             logger.error("[press_homming_button] ERROR INESPERADO: %s" % e)
-            QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+            QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
 
 # Gestión de acción de botón: 'Picktest'.
     def press_picktest_button(self):
-        ret = QMessageBox.warning(self, "WARNING!", 'Are you sure? \nRobot moves automatically', QMessageBox.Ok, QMessageBox.Cancel)
+        ret = QMessageBox.warning(self, "WARNING!", 'Êtes-vous sûr? \nLe robot va bouger en automatique.', QMessageBox.Ok, QMessageBox.Cancel)
         if ret == QMessageBox.Ok:
             try:
                 placed_rel_service = rospy.ServiceProxy(global_var.srv_name_move_rel_slow, set_CartesianEuler_pose)
@@ -1046,7 +1046,7 @@ class KukaGUI(QWidget, WidgetsManagement):
                         CURRENT_STATE=global_var.STATE_DOING_PICK_TEST
             except rospy.ServiceException as e:
                 logger.error("Service call failed: %s", e)
-                QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
 
 # Gestión de acción de botón: 'Tare'.
     def press_tare_button(self):
@@ -1055,7 +1055,7 @@ class KukaGUI(QWidget, WidgetsManagement):
             ret = tare_service(True)
         except rospy.ServiceException as e:
                 logger.error("Service call failed: %s", e)
-                QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
 
 # Gestión de acción de botón: 'Tare reset'.
     def press_tare_reset_button(self):
@@ -1064,7 +1064,7 @@ class KukaGUI(QWidget, WidgetsManagement):
             ret = tare_service(False)
         except rospy.ServiceException as e:
                 logger.error("Service call failed: %s", e)
-                QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
     #################################################JOY SELECTION
 # Función: Joy selected.
     def joy_selected(self, index):
@@ -1128,7 +1128,7 @@ class KukaGUI(QWidget, WidgetsManagement):
                 limit_peak_current_service(limit_value)
             except (rospy.ServiceException, rospy.ROSException) as e:
                 logger.error("Service call failed: %s" % (e,))
-                QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
             global_var.current_limit_picked = limit_value
 
         # Ajusta el máximo del progressbar
@@ -1143,7 +1143,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         
 # Gestión de acción de botón: 'Reset external pc'.
     def press_reset_external_pc_button(self):
-        ret = QMessageBox.warning(self, "WARNING!", 'Are you sure? \nExternal PC is going to reset.\n Wait 10 sec and restart the GUI.', QMessageBox.Ok, QMessageBox.Cancel)
+        ret = QMessageBox.warning(self, "WARNING!", 'Êtes-vous sûr? \nLe contrôleur de la pince va redémarrer.\n Wait 10 sec and restart the GUI.', QMessageBox.Ok, QMessageBox.Cancel)
         if ret == QMessageBox.Ok:
             self.tool_connection_label.setText("❌OFFLINE")
             self.tool_connection_label.setStyleSheet("color: red;")
@@ -1170,12 +1170,12 @@ class KukaGUI(QWidget, WidgetsManagement):
                 gripper_move_service(global_var.x_tool, 0, 0, global_var.angle_tool - 0.01)
             except rospy.ServiceException as e:
                 logger.error("[aut_press_tool] Error llamando al servicio de pinza (cerrando):: %s", str(e))
-                QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
                 self.activate_buttons()
                 return
             except Exception as e:
                 logger.error("[aut_press_tool] Error inesperado llamando al servicio (cerrando):: %s", str(e))
-                QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
                 self.activate_buttons()
                 return
             self.sleep_loop(0.15)
@@ -1196,12 +1196,12 @@ class KukaGUI(QWidget, WidgetsManagement):
                 gripper_move_service(global_var.x_tool + 0.02, 0, 0, global_var.angle_tool)
             except rospy.ServiceException as e:
                 logger.error("[aut_press_tool] Error llamando al servicio de pinza (abriendo):: %s", str(e))
-                QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
                 self.activate_buttons()
                 return
             except Exception as e:
                 logger.error("[aut_press_tool] Error inesperado llamando al servicio (abriendo):: %s", str(e))
-                QMessageBox.critical(self, "Error", "Service call failed: %s" % e)
+                QMessageBox.critical(self, "Error", "Échec de l'appel du service: %s" % e)
                 self.activate_buttons()
                 return
             self.sleep_loop(0.15)
