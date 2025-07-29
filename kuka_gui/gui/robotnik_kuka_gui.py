@@ -89,9 +89,6 @@ class KukaGUI(QWidget, WidgetsManagement):
         # Lanzar comandos externos para preparar ROS
         self._run_external_commands()        
 
-        # Inicializar pinza
-        self._tool_offline = False
-
         # Conexión de elementos gráficos
         self._connect_widgets()
         self._configure_styles()
@@ -126,7 +123,6 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.calibre_comboBox.currentIndexChanged.connect(self.calibre_selected)
         self.joy_comboBox.currentIndexChanged.connect(self.joy_selected)
         self.robot_connection_label.setText("❌OFFLINE")
-        self.tool_connection_label.setText("❌OFFLINE")
 
         # Botones principales
         self.Finger_Adjust_Button.pressed.connect(self.press_finger_adjust_button)
@@ -1147,15 +1143,14 @@ class KukaGUI(QWidget, WidgetsManagement):
         
 # Gestión de acción de botón: 'Reset external pc'.
     def press_reset_external_pc_button(self):
-        ret = QMessageBox.warning(self, "WARNING!", 'Êtes-vous sûr? \nLe contrôleur de la pince va redémarrer.\n ', QMessageBox.Ok, QMessageBox.Cancel)
+        ret = QMessageBox.warning(self, "WARNING!", 'Êtes-vous sûr? \nLe contrôleur de la pince va redémarrer.\n', QMessageBox.Ok, QMessageBox.Cancel)
         if ret == QMessageBox.Ok:
-            self._tool_offline = True
+            self.tool_connection_label.setText("❌OFFLINE")
+            self.tool_connection_label.setStyleSheet("color: red;")
             #command_string = "ssh robotnik@192.168.1.10 sudo -S <<< \"R0b0tn1K\" reboot \n"
             command_string = global_var.SCRIPTS_PATH + "reboot.sh"
             logger.info(command_string)
-            os.system(command_string) 
-            self._tool_offline = False
-
+            os.system(command_string)
 
     ###TEST APRIETE AUTOMATICO: si el nodo de las galgas falla se va  a liar
 # Función: Aut press tool.
@@ -1224,14 +1219,8 @@ class KukaGUI(QWidget, WidgetsManagement):
         
 # Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_tool_state(self, data):
-        if not self._tool_offline:
-            #logger.info("ONLINE")
-            self.tool_connection_label.setStyleSheet("color: green;")
-            self.tool_connection_label.setText("✓ONLINE")
-        else: 
-            #logger.info("DENTRO")
-            self.tool_connection_label.setStyleSheet("color: red;")
-            self.tool_connection_label.setText("❌OFFLINE") 
+        self.tool_connection_label.setStyleSheet("color: green;")
+        self.tool_connection_label.setText("✓ONLINE")
         global_var.x_tool = data.position[2]
         global_var.angle_tool = data.position[3]
         self.tool_pose_x_label.setText("%.2f" % (1000*global_var.x_tool))
