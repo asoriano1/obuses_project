@@ -4,6 +4,7 @@
 #general flags
 first_time_moving_kuka=False
 rob_connected = False
+rob_reset = False
 #gauges_failure=False
 under_voltage_tool=False
 first_time_enabled=False
@@ -12,6 +13,8 @@ TOOL_AUT=False
 tool_moving=False
 KUKA_AUT=False
 angle_mode=True
+TOOL_CONNECTED=False
+TOOL_RESET=False
 
 #Obus already placed
 #Hueveras de 2

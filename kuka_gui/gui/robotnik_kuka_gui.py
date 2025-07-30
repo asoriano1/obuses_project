@@ -10,6 +10,7 @@ Incluye conexión con ROS (topics, servicios), configuración visual, y control 
 import logging
 from color_logger import ColorFormatter
 import math
+from python_qt_binding.QtWidgets import QApplication
 
 logger = logging.getLogger('robotnik_kuka_gui')
 logger.setLevel(logging.DEBUG)
@@ -123,6 +124,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.calibre_comboBox.currentIndexChanged.connect(self.calibre_selected)
         self.joy_comboBox.currentIndexChanged.connect(self.joy_selected)
         self.robot_connection_label.setText("❌OFFLINE")
+        self.tool_connection_label.setText("❌OFFLINE")
 
         # Botones principales
         self.Finger_Adjust_Button.pressed.connect(self.press_finger_adjust_button)
@@ -607,11 +609,13 @@ class KukaGUI(QWidget, WidgetsManagement):
         """
         Callback ROS: tool homed
         """
+        if not data.data and global_flags.TOOL_HOMED:
+            self.Finger_Adjust_Button.setEnabled(False)
         #logger.info("CB:moving_received:"),data.data
         if data.data and not global_flags.TOOL_HOMED:
             self.Finger_Adjust_Button.setEnabled(True)
         #if  not global_flags.TOOL_HOMED:
-        #    self.Finger_Adjust_Button.setEnabled(False)
+        #    self.Finger_Adjust_Button.setEnabled(False) 
         global_flags.TOOL_HOMED=data.data
         
     
@@ -681,10 +685,10 @@ class KukaGUI(QWidget, WidgetsManagement):
 
     # Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_robot_pose(self, data):
-        if not global_flags.rob_connected :
+        if not global_flags.rob_connected and not global_flags.rob_reset:
              global_flags.rob_connected = True
-        self.robot_connection_label.setText("✓ONLINE")
-        self.robot_connection_label.setStyleSheet("color: green;")
+             self.robot_connection_label.setText("✓ONLINE")
+             self.robot_connection_label.setStyleSheet("color: green;")
         self.robot_pose_x_label.setText("%.2f" % data.x)
         self.robot_pose_y_label.setText("%.2f" % data.y)
         self.robot_pose_z_label.setText("%.2f" % data.z)
@@ -1145,12 +1149,15 @@ class KukaGUI(QWidget, WidgetsManagement):
     def press_reset_external_pc_button(self):
         ret = QMessageBox.warning(self, "WARNING!", 'Êtes-vous sûr? \nLe contrôleur de la pince va redémarrer.\n', QMessageBox.Ok, QMessageBox.Cancel)
         if ret == QMessageBox.Ok:
-            self.tool_connection_label.setText("❌OFFLINE")
-            self.tool_connection_label.setStyleSheet("color: red;")
+            global_flags.TOOL_CONNECTED = False
+            global_flags.TOOL_RESET = True
+            self.tool_connection_label.setText('<span style="color: red;">❌ OFFLINE</span>')
+            QApplication.processEvents()
             #command_string = "ssh robotnik@192.168.1.10 sudo -S <<< \"R0b0tn1K\" reboot \n"
             command_string = global_var.SCRIPTS_PATH + "reboot.sh"
             logger.info(command_string)
             os.system(command_string)
+            global_flags.TOOL_RESET = False
 
     ###TEST APRIETE AUTOMATICO: si el nodo de las galgas falla se va  a liar
 # Función: Aut press tool.
@@ -1219,8 +1226,10 @@ class KukaGUI(QWidget, WidgetsManagement):
         
 # Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_tool_state(self, data):
-        self.tool_connection_label.setStyleSheet("color: green;")
-        self.tool_connection_label.setText("✓ONLINE")
+        if not global_flags.TOOL_CONNECTED and not global_flags.TOOL_RESET:
+             global_flags.TOOL_CONNECTED = True
+             self.tool_connection_label.setStyleSheet("color: green;")
+             self.tool_connection_label.setText("✓ONLINE")     
         global_var.x_tool = data.position[2]
         global_var.angle_tool = data.position[3]
         self.tool_pose_x_label.setText("%.2f" % (1000*global_var.x_tool))
@@ -1229,13 +1238,15 @@ class KukaGUI(QWidget, WidgetsManagement):
     
 # Gestión de acción de botón: 'Reset robot'.
     def press_reset_robot_button(self):
-        self.robot_connection_label.setText("❌OFFLINE")
-        self.robot_connection_label.setStyleSheet("color: red;")
+        global_flags.rob_connected = False
+        global_flags.rob_reset = True
+        self.robot_connection_label.setText('<span style="color: red;">❌ OFFLINE</span>')
+        QApplication.processEvents()
         #command_string = "rosnode kill /kuka_pad/ps4_joystick; sleep 1; rosnode kill /kuka_pad/itowa_safe_joystick; sleep 1; rosnode kill /kuka_pad/robotnik_trajectory_pad_node; sleep 1; rosnode kill /kuka_robot/kuka_cartesian_hardware_interface; sleep 1; roslaunch kuka_robot_bringup kuka_robot_bringup_standalone.launch &"
         command_string = "killall screen; sleep 1; screen -S bringup -d -m roslaunch kuka_robot_bringup kuka_robot_bringup_standalone.launch"
         #command_string = "rosnode kill /kuka_robot/kuka_cartesian_hardware_interface; sleep 1; ROS_NAMESPACE=kuka_robot roslaunch kuka_rsi_cartesian_hw_interface test_hardware_interface.launch &"
         os.system(command_string)
-        global_flags.rob_connected = False
+        global_flags.rob_reset = False
            
 # Función: Sleep loop.
     def sleep_loop(self,delay):
