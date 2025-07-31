@@ -77,6 +77,9 @@ class KukaGUI(QWidget, WidgetsManagement):
     do_callback_tool_homed = QtCore.pyqtSignal(Bool)
     do_callback_tool_auto = QtCore.pyqtSignal(Bool)
     do_callback_pad_vel = QtCore.pyqtSignal(Float64)
+
+    watchdog_tool_disconnected = QtCore.pyqtSignal()
+    watchdog_robot_disconnected = QtCore.pyqtSignal()
     
     def __init__(self, parent=None):
         """
@@ -107,7 +110,16 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.resize(620, 1100)
         self._name = "RqtKuka"
         self.last_obus_selected_pick = -1
-        self.last_obus_selected_place = -1        
+        self.last_obus_selected_place = -1    
+
+        self.last_tool_state_time = rospy.Time.now()
+        self.last_robot_pose_time = rospy.Time.now()
+
+        # Inicia el Timer (cada 0.1s)
+        self.watchdog_timer = rospy.Timer(rospy.Duration(0.1), self.watchdog_callback)
+    
+        self.watchdog_tool_disconnected.connect(self.on_tool_disconnected)
+        self.watchdog_robot_disconnected.connect(self.on_robot_disconnected)
 
     def _run_external_commands(self):
         """Ejecuta comandos necesarios para preparar el entorno ROS."""
@@ -544,10 +556,12 @@ class KukaGUI(QWidget, WidgetsManagement):
                 self.tool_control_label.setText("⚙️ AUTO")
             self.tool_mov_label.setText("▶ MOVING")
             self.tool_moving = True
+            QApplication.processEvents()
         else:
             if not global_flags.TOOL_AUT:
                 self.tool_control_label.setText("🖐️ MANUAL")
             self.tool_mov_label.setText("⏸️ PAUSE")
+            QApplication.processEvents()
             self.tool_moving = False
             global_flags.TOOL_AUT=False
 
@@ -610,7 +624,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         Callback ROS: tool homed
         """
         if not data.data and global_flags.TOOL_HOMED:
-            self.Finger_Adjust_Button.setEnabled(False)
+            self.Finger_Adjust_Button.setEnabled(False) #cambiar a False
         #logger.info("CB:moving_received:"),data.data
         if data.data and not global_flags.TOOL_HOMED:
             self.Finger_Adjust_Button.setEnabled(True)
@@ -685,6 +699,7 @@ class KukaGUI(QWidget, WidgetsManagement):
 
     # Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_robot_pose(self, data):
+        self.last_robot_pose_time = rospy.Time.now()
         if not global_flags.rob_connected and not global_flags.rob_reset:
              global_flags.rob_connected = True
              self.robot_connection_label.setText("✓ONLINE")
@@ -1226,6 +1241,7 @@ class KukaGUI(QWidget, WidgetsManagement):
         
 # Callback ROS: gestiona eventos del topic o servicio relacionado.
     def callback_tool_state(self, data):
+        self.last_tool_state_time = rospy.Time.now()
         if not global_flags.TOOL_CONNECTED and not global_flags.TOOL_RESET:
              global_flags.TOOL_CONNECTED = True
              self.tool_connection_label.setStyleSheet("color: green;")
@@ -1235,6 +1251,31 @@ class KukaGUI(QWidget, WidgetsManagement):
         self.tool_pose_x_label.setText("%.2f" % (1000*global_var.x_tool))
         angle_degrees = math.degrees(global_var.angle_tool)
         self.tool_pose_a_label.setText("%.2f" % angle_degrees)
+    
+    def on_tool_disconnected(self):
+        self.tool_connection_label.setText('<span style="color: red;">❌ OFFLINE</span>')
+        self.tool_connection_label.setStyleSheet("color: red;")
+        QApplication.processEvents()
+
+    def on_robot_disconnected(self):
+        self.robot_connection_label.setText('<span style="color: red;">❌ OFFLINE</span>')
+        self.robot_connection_label.setStyleSheet("color: red;")
+        QApplication.processEvents()
+
+    def watchdog_callback(self, event):
+        now = rospy.Time.now()
+        tool_timeout = (now - self.last_tool_state_time).to_sec() > 0.5
+        robot_timeout = (now - self.last_robot_pose_time).to_sec() > 0.5
+
+        if tool_timeout and global_flags.TOOL_CONNECTED:
+            logger.info("Watchdog: TOOL desconectado")
+            global_flags.TOOL_CONNECTED = False
+            self.watchdog_tool_disconnected.emit()  
+
+        if robot_timeout and global_flags.rob_connected:
+            logger.info("Watchdog: ROBOT desconectado")
+            global_flags.rob_connected = False
+            self.watchdog_robot_disconnected.emit() 
     
 # Gestión de acción de botón: 'Reset robot'.
     def press_reset_robot_button(self):
@@ -1262,3 +1303,4 @@ class KukaGUI(QWidget, WidgetsManagement):
     def closeEvent(self, event):
         logger.info("Closing window")
         event.accept()
+
